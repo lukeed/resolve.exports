@@ -1,0 +1,41 @@
+{
+  "version": "0.0.0",
+  "name": "exports.resolve",
+  "repository": "lukeed/exports.resolve",
+  "description": "WIP",
+  "module": "dist/index.mjs",
+  "main": "dist/index.js",
+  "types": "index.d.ts",
+  "license": "MIT",
+  "author": {
+    "name": "Luke Edwards",
+    "email": "luke.edwards05@gmail.com",
+    "url": "https://lukeed.com"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "build": "bundt",
+    "pretest": "npm run build",
+    "test": "uvu -r esm test"
+  },
+  "files": [
+    "*.d.ts",
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "keywords": [
+  ],
+  "devDependencies": {
+    "bundt": "1.1.2",
+    "esm": "3.2.25",
+    "uvu": "0.5.1"
+  }
+}
