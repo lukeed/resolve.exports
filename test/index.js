@@ -337,3 +337,94 @@ resolve('exports["./features/*"] :: with "./" key', () => {
 });
 
 resolve.run();
+
+// ---
+
+const requires = suite('options.requires', {
+	"exports": {
+		"require": "$require",
+		"import": "$import",
+	}
+});
+
+requires('should ignore "require" keys by default', pkg => {
+	pass(pkg, '$import');
+});
+
+requires('should use "require" key when defined first', pkg => {
+	pass(pkg, '$require', '.', { requires: true });
+});
+
+requires.run();
+
+// ---
+
+const browser = suite('options.browser', {
+	"exports": {
+		"browser": "$browser",
+		"node": "$node",
+	}
+});
+
+browser('should ignore "browser" keys by default', pkg => {
+	pass(pkg, '$node');
+});
+
+browser('should use "browser" key when defined first', pkg => {
+	pass(pkg, '$browser', '.', { browser: true });
+});
+
+browser('should ignore "node" key when enabled', () => {
+	let pkg = {
+		"exports": {
+			"node": "$node",
+			"import": "$import",
+			"browser": "$browser",
+		}
+	};
+	// import defined before browser
+	pass(pkg, '$import', '.', { browser: true });
+});
+
+browser.run();
+
+// ---
+
+const fields = suite('options.fields', {
+	"exports": {
+		"production": "$prod",
+		"development": "$dev",
+		"default": "$default",
+	}
+});
+
+fields('should ignore unknown fields by default', pkg => {
+	pass(pkg, '$default');
+});
+
+fields('should recognize custom field(s) when specified', pkg => {
+	pass(pkg, '$dev', '.', {
+		fields: ['development']
+	});
+
+	pass(pkg, '$prod', '.', {
+		fields: ['development', 'production']
+	});
+});
+
+// TODO: loop needs "conditions" error
+fields.skip('should throw an error if no known conditions', pkg => {
+	// @ts-ignore
+	pkg.name = 'hello';
+	delete pkg.exports.default;
+
+	try {
+		$exports.resolve(pkg);
+		assert.unreachable();
+	} catch (err) {
+		assert.instance(err, Error);
+		assert.is(err.message, `No known conditions for "." entry in "hello" package`);
+	}
+});
+
+fields.run();

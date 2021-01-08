@@ -66,12 +66,13 @@ export function resolve(pkg, entry='.', options={}) {
 		}
 
 		if (isSingle) {
+			// TODO: loop needs "conditions" error
 			return isSelf && loop(exports, allows) || bail(name, target);
 		}
 
 		if (tmp = exports[target]) {
 			if (tmp = loop(tmp, allows)) return tmp;
-			throw new Error(`No valid keys for "${target}" entry in "${name}" package`);
+			throw new Error(`No known conditions for "${target}" entry in "${name}" package`);
 		}
 
 		for (key in exports) {
