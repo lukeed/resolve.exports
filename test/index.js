@@ -130,8 +130,6 @@ resolve('exports["./foo"] = object', () => {
 	fail(pkg, './other', 'foobar/other');
 });
 
-// TODO: folder mappings -- https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
-
 // https://nodejs.org/api/packages.html#packages_nested_conditions
 resolve('nested conditions', () => {
 	let pkg = {
@@ -157,9 +155,6 @@ resolve('nested conditions', () => {
 	fail(pkg, './other', 'other');
 });
 
-// TODO: incomplete
-// TODO? do require.resolve on directory?
-// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
 resolve('exports["./"]', () => {
 	let pkg = {
 		"name": "foobar",
@@ -182,9 +177,69 @@ resolve('exports["./"]', () => {
 	pass(pkg, './package.json', './package.json');
 
 	// "loose" / everything exposed
-	// pass(pkg, './hello.js', 'hello.js');
-	// pass(pkg, './hello.js', 'foobar/hello.js');
-	// pass(pkg, './hello/world.js', './hello/world.js');
+	pass(pkg, './hello.js', 'hello.js');
+	pass(pkg, './hello.js', 'foobar/hello.js');
+	pass(pkg, './hello/world.js', './hello/world.js');
+});
+
+// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
+resolve('exports["./features/"]', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./features/": "./features/",
+			"./package.json": "./package.json",
+			"./": "./"
+		}
+	};
+
+	pass(pkg, './features', 'features'); // via "./"
+	pass(pkg, './features', 'foobar/features'); // via "./"
+
+	pass(pkg, './features/', 'features/'); // via "./features/"
+	pass(pkg, './features/', 'foobar/features/'); // via "./features/"
+
+	pass(pkg, './features/hello.js', 'foobar/features/hello.js');
+
+	pass(pkg, './package.json', 'package.json');
+	pass(pkg, './package.json', 'foobar/package.json');
+	pass(pkg, './package.json', './package.json');
+
+	// Does NOT hit "./" (match Node)
+	fail(pkg, '.', '.');
+	fail(pkg, '.', 'foobar');
+});
+
+// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
+resolve('exports["./features/*"]', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./features/*": "./features/*.js",
+			"./": "./"
+		}
+	};
+
+	pass(pkg, './features', 'features'); // via "./"
+	pass(pkg, './features', 'foobar/features'); // via "./"
+
+	pass(pkg, './features/', 'features/'); // via "./"
+	pass(pkg, './features/', 'foobar/features/'); // via "./"
+
+	pass(pkg, './features/hello.js', 'foobar/features/hello');
+	pass(pkg, './features/world.js', 'foobar/features/world');
+
+	// incorrect, but matches Node. evaluate as defined
+	pass(pkg, './features/hello.js.js', 'foobar/features/hello.js');
+	pass(pkg, './features/world.js.js', 'foobar/features/world.js');
+
+	pass(pkg, './package.json', 'package.json');
+	pass(pkg, './package.json', 'foobar/package.json');
+	pass(pkg, './package.json', './package.json');
+
+	// Does NOT hit "./" (match Node)
+	fail(pkg, '.', '.');
+	fail(pkg, '.', 'foobar');
 });
 
 resolve.run();

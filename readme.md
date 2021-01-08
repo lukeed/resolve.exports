@@ -9,8 +9,8 @@
 - [x] exports object (multi entry)
 - [x] nested conditions
 - [ ] exports arrayable
-- [ ] directory mapping (`./foobar/` => `/foobar/`)
-- [ ] directory mapping (`./foobar/*` => `./other/*.js`)
+- [x] directory mapping (`./foobar/` => `/foobar/`)
+- [x] directory mapping (`./foobar/*` => `./other/*.js`)
 - [ ] `options.file` => absolute filepath
 - [ ] legacy fields
 

@@ -1,5 +1,3 @@
-import { join } from 'path';
-
 /**
  * @todo arrayable
  * @param {object} exports
@@ -60,12 +58,9 @@ export function resolve(pkg, entry='.', options={}) {
 		if (requires) allows.add('require');
 		allows.add(browser ? 'browser' : 'node');
 
-		// TODO: "./*"
-		const isLoose = exports['./'];
-		let key, isSingle = !isLoose;
+		let key, tmp, isSingle=false;
 
-		// might just not have "./" key
-		if (isSingle) for (key in exports) {
+		for (key in exports) {
 			isSingle = key.charAt(0) !== '.';
 			break;
 		}
@@ -74,13 +69,24 @@ export function resolve(pkg, entry='.', options={}) {
 			return isSelf && loop(exports, allows) || bail(name, target);
 		}
 
-		let item = exports[target];
-		// TODO: no known keys error
-		if (item) return loop(item, allows);
+		if (tmp = exports[target]) {
+			if (tmp = loop(tmp, allows)) return tmp;
+			throw new Error(`No valid keys for "${target}" entry in "${name}" package`);
+		}
 
-		// NOTE: is only "./", may be other directory mappings
-		// TODO: can now also have "./*"
-		// @see https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
-		return isLoose ? join(isLoose, target) : bail(name, target);
+		for (key in exports) {
+			tmp = key.charAt(key.length - 1);
+			if (tmp === '/' && target.startsWith(key)) {
+				return exports[key] + target.substring(key.length);
+			}
+			if (tmp === '*' && target.startsWith(key.slice(0, -1))) {
+				// do not trigger if no *content* to inject
+				if (tmp = target.substring(key.length - 1)) {
+					return exports[key].replace('*', tmp);
+				}
+			}
+		}
+
+		return bail(name, target);
 	}
 }
