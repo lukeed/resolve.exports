@@ -53,10 +53,9 @@ export function resolve(pkg, entry='.', options={}) {
 			return isSelf ? exports : bail(name, target);
 		}
 
-		const allows = new Set([
-			'import', 'default',
-			...[].concat(fields || []),
-		]);
+		const allows = new Set(
+			['import', 'default'].concat(fields || [])
+		);
 
 		if (requires) allows.add('require');
 		allows.add(browser ? 'browser' : 'node');
