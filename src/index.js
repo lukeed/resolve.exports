@@ -1,6 +1,7 @@
 import { join } from 'path';
 
 /**
+ * @todo arrayable
  * @param {object} exports
  * @param {Set<string>} keys
  */
@@ -60,6 +61,7 @@ export function resolve(pkg, entry='.', options={}) {
 		if (requires) allows.add('require');
 		allows.add(browser ? 'browser' : 'node');
 
+		// TODO: "./*"
 		const isLoose = exports['./'];
 		let key, isSingle = !isLoose;
 
@@ -70,10 +72,11 @@ export function resolve(pkg, entry='.', options={}) {
 		}
 
 		if (isSingle) {
-			return isSelf ? loop(exports, allows) : bail(name, target);
+			return isSelf && loop(exports, allows) || bail(name, target);
 		}
 
 		let item = exports[target];
+		// TODO: no known keys error
 		if (item) return loop(item, allows);
 
 		// NOTE: is only "./", may be other directory mappings
