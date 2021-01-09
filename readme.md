@@ -11,7 +11,7 @@
 - [x] exports arrayable
 - [x] directory mapping (`./foobar/` => `/foobar/`)
 - [x] directory mapping (`./foobar/*` => `./other/*.js`)
-- [ ] legacy fields
+- [x] legacy fields
 
 ## License
 

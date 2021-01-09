@@ -4,7 +4,5 @@ export interface Options {
 	fields?: string[];
 }
 
-export function resolve<T=any>(pkg: T, entry: string, options?: Options): string;
-
-// TODO
-// export function legacy<T=any>(pkg: T, options?: Omit<Options, 'requires'>): string;
+export function resolve<T=any>(pkg: T, entry: string, options?: Options): string | void;
+export function legacy<T=any>(pkg: T, options?: Omit<Options, 'requires'>): string | void;

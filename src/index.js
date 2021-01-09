@@ -102,3 +102,23 @@ export function resolve(pkg, entry='.', options={}) {
 		return bail(name, target);
 	}
 }
+
+/**
+ * @param {object} pkg
+ * @param {object} [options]
+ * @param {boolean} [options.browser]
+ * @param {string[]} [options.fields]
+ */
+export function legacy(pkg, options={}) {
+	let i=0, tmp, fields = options.fields || ['module', 'main'];
+
+	if (options.browser && !fields.includes('browser')) {
+		fields.unshift('browser');
+	}
+
+	for (; i < fields.length; i++) {
+		if ((tmp = pkg[fields[i]]) && typeof tmp === 'string') {
+			return './' + tmp.replace(/^\.?\//, '');
+		}
+	}
+}
