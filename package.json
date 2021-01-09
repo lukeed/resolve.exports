@@ -1,7 +1,7 @@
 {
   "version": "0.0.0",
-  "name": "exports.resolve",
-  "repository": "lukeed/exports.resolve",
+  "name": "resolve.exports",
+  "repository": "lukeed/resolve.exports",
   "description": "WIP",
   "module": "dist/index.mjs",
   "main": "dist/index.js",

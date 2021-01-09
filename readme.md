@@ -1,4 +1,4 @@
-# exports.resolve [![CI](https://github.com/lukeed/exports.resolve/workflows/CI/badge.svg)](https://github.com/lukeed/exports.resolve/actions)
+# resolve.exports [![CI](https://github.com/lukeed/resolve.exports/workflows/CI/badge.svg)](https://github.com/lukeed/resolve.exports/actions)
 
 > WIP
 
