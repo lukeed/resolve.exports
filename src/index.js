@@ -45,39 +45,38 @@ function bail(name, entry, condition) {
  * @param {string[]} [options.fields]
  */
 export function resolve(pkg, entry='.', options={}) {
-	const { name, exports } = pkg;
-	const { browser, requires, fields } = options;
+	let { name, exports } = pkg;
 
 	if (exports) {
+		let { browser, requires, fields=[] } = options;
+
 		let target = entry === name ? '.'
-			: entry.charAt(0) === '.' ? entry
+			: entry[0] === '.' ? entry
 			: entry.replace(new RegExp('^' + name + '\/'), './');
 
-		if (target.charAt(0) !== '.') {
+		if (target[0] !== '.') {
 			target = './' + target;
 		}
 
-		const isSelf = target === '.';
 		if (typeof exports === 'string') {
-			return isSelf ? exports : bail(name, target);
+			return target === '.' ? exports : bail(name, target);
 		}
 
-		const allows = new Set(
-			['import', 'default'].concat(fields || [])
-		);
+		let allows = new Set(['import', 'default', ...fields]);
 
+		// TODO: should either/or import?
 		if (requires) allows.add('require');
 		allows.add(browser ? 'browser' : 'node');
 
 		let key, tmp, isSingle=false;
 
 		for (key in exports) {
-			isSingle = key.charAt(0) !== '.';
+			isSingle = key[0] !== '.';
 			break;
 		}
 
 		if (isSingle) {
-			return isSelf
+			return target === '.'
 				? loop(exports, allows) || bail(name, target, 1)
 				: bail(name, target);
 		}
@@ -87,7 +86,7 @@ export function resolve(pkg, entry='.', options={}) {
 		}
 
 		for (key in exports) {
-			tmp = key.charAt(key.length - 1);
+			tmp = key[key.length - 1];
 			if (tmp === '/' && target.startsWith(key)) {
 				return exports[key] + target.substring(key.length);
 			}
