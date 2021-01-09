@@ -11,7 +11,6 @@
 - [ ] exports arrayable
 - [x] directory mapping (`./foobar/` => `/foobar/`)
 - [x] directory mapping (`./foobar/*` => `./other/*.js`)
-- [ ] `options.file` => absolute filepath
 - [ ] legacy fields
 
 ## License

@@ -1,4 +1,3 @@
-// TODO: file?
 export interface Options {
 	requires?: boolean;
 	browser?: boolean;
