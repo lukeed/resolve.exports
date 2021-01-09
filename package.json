@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0",
+  "version": "0.0.1",
   "name": "resolve.exports",
   "repository": "lukeed/resolve.exports",
   "description": "WIP",
@@ -31,8 +31,7 @@
     },
     "./package.json": "./package.json"
   },
-  "keywords": [
-  ],
+  "keywords": [],
   "devDependencies": {
     "bundt": "1.1.2",
     "esm": "3.2.25",
