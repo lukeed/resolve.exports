@@ -89,4 +89,13 @@ browser('should prioritize "browser" field when defined', pkg => {
 	assert.is(output, './build/browser.js');
 });
 
+browser('should respect existing "browser" order in custom fields', pkg => {
+	let output = $exports.legacy(pkg, {
+		fields: ['main', 'browser'],
+		browser: true,
+	});
+
+	assert.is(output, './build/main.js');
+});
+
 browser.run();
