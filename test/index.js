@@ -412,10 +412,14 @@ fields('should recognize custom field(s) when specified', pkg => {
 	});
 });
 
-// TODO: loop needs "conditions" error
-fields.skip('should throw an error if no known conditions', pkg => {
-	// @ts-ignore
-	pkg.name = 'hello';
+fields('should throw an error if no known conditions', ctx => {
+	let pkg = {
+		"name": "hello",
+		"exports": {
+			...ctx.exports
+		},
+	};
+
 	delete pkg.exports.default;
 
 	try {

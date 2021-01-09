@@ -18,11 +18,16 @@ function loop(exports, keys) {
 }
 
 /**
- * @param {string} name
- * @param {string} entry
+ * @param {string} name The package name
+ * @param {string} entry The target entry, eg "."
+ * @param {number} [condition] Unmatched condition?
  */
-function bail(name, entry) {
-	throw new Error(`Missing "${entry}" export in "${name}" package`);
+function bail(name, entry, condition) {
+	throw new Error(
+		condition
+		? `No known conditions for "${entry}" entry in "${name}" package`
+		: `Missing "${entry}" export in "${name}" package`
+	);
 }
 
 /**
@@ -66,13 +71,13 @@ export function resolve(pkg, entry='.', options={}) {
 		}
 
 		if (isSingle) {
-			// TODO: loop needs "conditions" error
-			return isSelf && loop(exports, allows) || bail(name, target);
+			return isSelf
+				? loop(exports, allows) || bail(name, target, 1)
+				: bail(name, target);
 		}
 
 		if (tmp = exports[target]) {
-			if (tmp = loop(tmp, allows)) return tmp;
-			throw new Error(`No known conditions for "${target}" entry in "${name}" package`);
+			return loop(tmp, allows) || bail(name, target, 1);
 		}
 
 		for (key in exports) {
