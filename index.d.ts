@@ -4,7 +4,6 @@ export interface Options {
 	fields?: string[];
 }
 
-// TODO: arrayable
 export function resolve<T=any>(pkg: T, entry: string, options?: Options): string;
 
 // TODO

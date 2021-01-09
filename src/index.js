@@ -1,5 +1,4 @@
 /**
- * @todo arrayable
  * @param {object} exports
  * @param {Set<string>} keys
  */
@@ -9,9 +8,16 @@ function loop(exports, keys) {
 	}
 
 	if (exports) {
-		for (let key in exports) {
-			if (keys.has(key)) {
-				return loop(exports[key], keys);
+		let idx, tmp;
+		if (Array.isArray(exports)) {
+			for (idx=0; idx < exports.length; idx++) {
+				if (tmp = loop(exports[idx], keys)) return tmp;
+			}
+		} else {
+			for (idx in exports) {
+				if (keys.has(idx)) {
+					return loop(exports[idx], keys);
+				}
 			}
 		}
 	}

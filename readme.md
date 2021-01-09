@@ -8,7 +8,7 @@
 - [x] exports object (single entry)
 - [x] exports object (multi entry)
 - [x] nested conditions
-- [ ] exports arrayable
+- [x] exports arrayable
 - [x] directory mapping (`./foobar/` => `/foobar/`)
 - [x] directory mapping (`./foobar/*` => `./other/*.js`)
 - [ ] legacy fields

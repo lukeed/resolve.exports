@@ -336,6 +336,37 @@ resolve('exports["./features/*"] :: with "./" key', () => {
 	fail(pkg, '.', 'foobar');
 });
 
+resolve('should handle mixed path/conditions', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			".": [
+				{
+					"import": "$root.import",
+				},
+				"$root.string"
+			],
+			"./foo": [
+				{
+					"require": "$foo.require"
+				},
+				"$foo.string"
+			]
+		}
+	}
+
+	pass(pkg, '$root.import');
+	pass(pkg, '$root.import', 'foobar');
+
+	pass(pkg, '$foo.string', 'foo');
+	pass(pkg, '$foo.string', 'foobar/foo');
+	pass(pkg, '$foo.string', './foo');
+
+	pass(pkg, '$foo.require', 'foo', { requires: true });
+	pass(pkg, '$foo.require', 'foobar/foo', { requires: true });
+	pass(pkg, '$foo.require', './foo', { requires: true });
+});
+
 resolve.run();
 
 // ---
