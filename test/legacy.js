@@ -2,7 +2,7 @@ import { suite } from 'uvu';
 import * as assert from 'uvu/assert';
 import * as $exports from '../src';
 
-const legacy = suite('legacy');
+const legacy = suite('$.legacy');
 
 legacy('should be a function', () => {
 	assert.type($exports.legacy, 'function');

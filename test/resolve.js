@@ -19,7 +19,7 @@ function fail(pkg, target, ...args) {
 
 // ---
 
-const resolve = suite('resolve');
+const resolve = suite('$.resolve');
 
 resolve('should be a function', () => {
 	assert.type($exports.resolve, 'function');
