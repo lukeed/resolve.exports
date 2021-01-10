@@ -386,6 +386,27 @@ requires('should use "require" key when defined first', pkg => {
 	pass(pkg, '$require', '.', { requires: true });
 });
 
+requires('should ignore "import" key when enabled', () => {
+	let pkg = {
+		"exports": {
+			"import": "$import",
+			"require": "$require",
+		}
+	};
+	pass(pkg, '$require', '.', { requires: true });
+	pass(pkg, '$import', '.');
+});
+
+requires('should match "default" if "require" is after', () => {
+	let pkg = {
+		"exports": {
+			"default": "$default",
+			"require": "$require",
+		}
+	};
+	pass(pkg, '$default', '.', { requires: true });
+});
+
 requires.run();
 
 // ---

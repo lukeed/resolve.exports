@@ -62,10 +62,8 @@ export function resolve(pkg, entry='.', options={}) {
 			return target === '.' ? exports : bail(name, target);
 		}
 
-		let allows = new Set(['import', 'default', ...fields]);
-
-		// TODO: should either/or import?
-		if (requires) allows.add('require');
+		let allows = new Set(['default', ...fields]);
+		allows.add(requires ? 'require' : 'import');
 		allows.add(browser ? 'browser' : 'node');
 
 		let key, tmp, isSingle=false;
