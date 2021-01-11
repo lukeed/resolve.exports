@@ -1,8 +1,12 @@
 export interface Options {
-	requires?: boolean;
 	browser?: boolean;
-	fields?: string[];
+	conditions?: string[];
+	requires?: boolean;
 }
 
 export function resolve<T=any>(pkg: T, entry: string, options?: Options): string | void;
-export function legacy<T=any>(pkg: T, options?: Omit<Options, 'requires'>): string | void;
+
+export function legacy<T=any>(pkg: T, options?: {
+	browser?: boolean;
+	fields?: string[];
+}): string | void;

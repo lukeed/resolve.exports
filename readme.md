@@ -76,12 +76,12 @@ resolve(contents, './hello/world');
 
 // Add custom condition(s)
 resolve(contents, 'foobar/lite', {
-  fields: ['worker']
+  conditions: ['worker']
 }); // => "./lite/worker.node.js"
 
 // Toggle "browser" condition
 resolve(contents, 'foobar/lite', {
-  fields: ['worker'],
+  conditions: ['worker'],
   browser: true
 }); // => "./lite/worker.browser.js"
 
@@ -111,7 +111,7 @@ Successful resolutions will always result in a string value. This will be the va
 This function may throw an Error if:
 
 * the requested `entry` cannot be resolved (aka, not defined in the `"exports"` map)
-* an `entry` _was_ resolved but no known conditions were found (see [`options.fields`](#optionsfields))
+* an `entry` _was_ resolved but no known conditions were found (see [`options.conditions`](#optionsconditions))
 
 #### pkg
 Type: `object` <br>
@@ -160,13 +160,13 @@ Default: `false`
 
 When truthy, the `"browser"` field is added to the list of allowed/known conditions.
 
-#### options.fields
+#### options.conditions
 Type: `string[]` <br>
 Default: `[]`
 
-Provide a list of additional/custom fields that should be accepted when seen.
+Provide a list of additional/custom conditions that should be accepted when seen.
 
-> **Important:** The order specified within `options.fields` does not matter. <br>The matching order/priority is **always** determined by the `"exports"` map's key order.
+> **Important:** The order specified within `options.conditions` does not matter. <br>The matching order/priority is **always** determined by the `"exports"` map's key order.
 
 For example, you may choose to accept a `"production"` condition in certain environments. Given the following `pkg` content:
 
@@ -185,30 +185,30 @@ resolve(contents, '.');
 //=> "./index.import.mjs"
 
 resolve(contents, '.', {
-  fields: ['production']
+  conditions: ['production']
 }); //=> "./index.prod.js"
 
 resolve(contents, '.', {
-  fields: ['production'],
+  conditions: ['production'],
   requires: true,
 }); //=> "./index.require.js"
 
 resolve(contents, '.', {
-  fields: ['production', 'worker'],
+  conditions: ['production', 'worker'],
   requires: true,
 }); //=> "./index.worker.js"
 
 resolve(contents, '.', {
-  fields: ['production', 'worker']
+  conditions: ['production', 'worker']
 }); //=> "./index.worker.js"
 ```
 
 ### legacy(pkg, options?)
 Returns: `string` or `undefined`
 
-Also included is a "legacy" method for resolving non-`"exports"` fields. This may be used as a fallback method when for when no `"exports"` mapping is defined. In other words, it's completely optional (and tree-shakeable).
+Also included is a "legacy" method for resolving non-`"exports"` package fields. This may be used as a fallback method when for when no `"exports"` mapping is defined. In other words, it's completely optional (and tree-shakeable).
 
-You may customize the field priority via [`options.fields`](#optionsfields2).
+You may customize the field priority via [`options.fields`](#optionsfields).
 
 When a field is found, its value is returned _as written_. <br>
 When no fields were found, `undefined` is returned. If you wish to mimic Node.js behavior, you can assume this means `'index.js'` – but this module does not make that assumption for you.
@@ -219,7 +219,7 @@ Default: `false`
 
 When truthy, ensures that the `'browser'` field is part of the acceptable `fields` list.
 
-> **Important:** If your custom `options.fields` value includes `'browser'`, then _your_ order is respected. <br>Otherwise, when truthy, `options.browser` will move `'browser'` to the front of the list, making it the top priority.
+> **Important:** If your custom [`options.fields`](#optionsfields) value includes `'browser'`, then _your_ order is respected. <br>Otherwise, when truthy, `options.browser` will move `'browser'` to the front of the list, making it the top priority.
 
 #### options.fields
 Type: `string[]` <br>

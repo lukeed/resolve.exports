@@ -442,7 +442,7 @@ browser.run();
 
 // ---
 
-const fields = suite('options.fields', {
+const conditions = suite('options.conditions', {
 	"exports": {
 		"production": "$prod",
 		"development": "$dev",
@@ -450,21 +450,21 @@ const fields = suite('options.fields', {
 	}
 });
 
-fields('should ignore unknown fields by default', pkg => {
+conditions('should ignore unknown conditions by default', pkg => {
 	pass(pkg, '$default');
 });
 
-fields('should recognize custom field(s) when specified', pkg => {
+conditions('should recognize custom field(s) when specified', pkg => {
 	pass(pkg, '$dev', '.', {
-		fields: ['development']
+		conditions: ['development']
 	});
 
 	pass(pkg, '$prod', '.', {
-		fields: ['development', 'production']
+		conditions: ['development', 'production']
 	});
 });
 
-fields('should throw an error if no known conditions', ctx => {
+conditions('should throw an error if no known conditions', ctx => {
 	let pkg = {
 		"name": "hello",
 		"exports": {
@@ -483,4 +483,4 @@ fields('should throw an error if no known conditions', ctx => {
 	}
 });
 
-fields.run();
+conditions.run();

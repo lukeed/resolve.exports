@@ -42,13 +42,13 @@ function bail(name, entry, condition) {
  * @param {object} [options]
  * @param {boolean} [options.browser]
  * @param {boolean} [options.requires]
- * @param {string[]} [options.fields]
+ * @param {string[]} [options.conditions]
  */
 export function resolve(pkg, entry='.', options={}) {
 	let { name, exports } = pkg;
 
 	if (exports) {
-		let { browser, requires, fields=[] } = options;
+		let { browser, requires, conditions=[] } = options;
 
 		let target = entry === name ? '.'
 			: entry[0] === '.' ? entry
@@ -62,7 +62,7 @@ export function resolve(pkg, entry='.', options={}) {
 			return target === '.' ? exports : bail(name, target);
 		}
 
-		let allows = new Set(['default', ...fields]);
+		let allows = new Set(['default', ...conditions]);
 		allows.add(requires ? 'require' : 'import');
 		allows.add(browser ? 'browser' : 'node');
 
