@@ -1,4 +1,4 @@
-# resolve.exports [![CI](https://github.com/lukeed/resolve.exports/workflows/CI/badge.svg)](https://github.com/lukeed/resolve.exports/actions)
+# resolve.exports [![CI](https://github.com/lukeed/resolve.exports/workflows/CI/badge.svg)](https://github.com/lukeed/resolve.exports/actions) [![codecov](https://badgen.net/codecov/c/github/lukeed/resolve.exports)](https://codecov.io/gh/lukeed/resolve.exports)
 
 > A tiny (710b), correct, general-purpose, and configurable `"exports"` resolver without file-system reliance
 
