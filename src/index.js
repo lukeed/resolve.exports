@@ -91,12 +91,16 @@ export function resolve(pkg, entry='.', options={}) {
 		for (key in exports) {
 			tmp = key[key.length - 1];
 			if (tmp === '/' && target.startsWith(key)) {
-				return exports[key] + target.substring(key.length);
+				return (tmp = loop(exports[key], allows))
+					? (tmp + target.substring(key.length))
+					: bail(name, target, 1);
 			}
 			if (tmp === '*' && target.startsWith(key.slice(0, -1))) {
 				// do not trigger if no *content* to inject
-				if (tmp = target.substring(key.length - 1)) {
-					return exports[key].replace('*', tmp);
+				if (target.length - key.length > 1) {
+					return (tmp = loop(exports[key], allows))
+						? tmp.replace('*', target.substring(key.length - 1))
+						: bail(name, target, 1);
 				}
 			}
 		}

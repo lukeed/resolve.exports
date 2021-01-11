@@ -325,6 +325,43 @@ resolve('exports["./features/"] :: with "./" key', () => {
 	fail(pkg, '.', 'foobar');
 });
 
+resolve('exports["./features/"] :: conditions', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./features/": {
+				"browser": {
+					"import": "./browser.import/",
+					"require": "./browser.require/",
+				},
+				"import": "./import/",
+				"require": "./require/",
+			},
+		}
+	};
+
+	// import
+	pass(pkg, './import/', 'features/');
+	pass(pkg, './import/', 'foobar/features/');
+
+	pass(pkg, './import/hello.js', './features/hello.js');
+	pass(pkg, './import/hello.js', 'foobar/features/hello.js');
+
+	// require
+	pass(pkg, './require/', 'features/', { require: true });
+	pass(pkg, './require/', 'foobar/features/', { require: true });
+
+	pass(pkg, './require/hello.js', './features/hello.js', { require: true });
+	pass(pkg, './require/hello.js', 'foobar/features/hello.js', { require: true });
+
+	// require + browser
+	pass(pkg, './browser.require/', 'features/', { browser: true, require: true });
+	pass(pkg, './browser.require/', 'foobar/features/', { browser: true, require: true });
+
+	pass(pkg, './browser.require/hello.js', './features/hello.js', { browser: true, require: true });
+	pass(pkg, './browser.require/hello.js', 'foobar/features/hello.js', { browser: true, require: true });
+});
+
 // https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
 resolve('exports["./features/*"]', () => {
 	let pkg = {
@@ -382,6 +419,43 @@ resolve('exports["./features/*"] :: with "./" key', () => {
 	// Does NOT hit "./" (match Node)
 	fail(pkg, '.', '.');
 	fail(pkg, '.', 'foobar');
+});
+
+resolve('exports["./features/*"] :: conditions', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./features/*": {
+				"browser": {
+					"import": "./browser.import/*.mjs",
+					"require": "./browser.require/*.js",
+				},
+				"import": "./import/*.mjs",
+				"require": "./require/*.js",
+			},
+		}
+	};
+
+	// import
+	fail(pkg, './features/', 'features/'); // no file
+	fail(pkg, './features/', 'foobar/features/'); // no file
+
+	pass(pkg, './import/hello.mjs', './features/hello');
+	pass(pkg, './import/hello.mjs', 'foobar/features/hello');
+
+	// require
+	fail(pkg, './features/', 'features/', { require: true }); // no file
+	fail(pkg, './features/', 'foobar/features/', { require: true }); // no file
+
+	pass(pkg, './require/hello.js', './features/hello', { require: true });
+	pass(pkg, './require/hello.js', 'foobar/features/hello', { require: true });
+
+	// require + browser
+	fail(pkg, './features/', 'features/', { browser: true, require: true }); // no file
+	fail(pkg, './features/', 'foobar/features/', { browser: true, require: true }); // no file
+
+	pass(pkg, './browser.require/hello.js', './features/hello', { browser: true, require: true });
+	pass(pkg, './browser.require/hello.js', 'foobar/features/hello', { browser: true, require: true });
 });
 
 resolve('should handle mixed path/conditions', () => {
