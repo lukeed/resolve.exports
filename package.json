@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "name": "resolve.exports",
   "repository": "lukeed/resolve.exports",
-  "description": "WIP",
+  "description": "A tiny (710b), correct, general-purpose, and configurable \"exports\" resolver without file-system reliance",
   "module": "dist/index.mjs",
   "main": "dist/index.js",
   "types": "index.d.ts",
@@ -31,7 +31,15 @@
     },
     "./package.json": "./package.json"
   },
-  "keywords": [],
+  "keywords": [
+    "esm",
+    "exports",
+    "esmodules",
+    "fields",
+    "modules",
+    "resolution",
+    "resolve"
+  ],
   "devDependencies": {
     "bundt": "1.1.2",
     "esm": "3.2.25",
