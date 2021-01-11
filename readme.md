@@ -20,6 +20,7 @@ Let's have nice things.
 - [x] directory mapping (`./foobar/` => `/foobar/`)
 - [x] directory mapping (`./foobar/*` => `./other/*.js`)
 - [x] legacy fields (`main` vs `module` vs ...)
+- [x] legacy "browser" files object
 
 ## Install
 
@@ -214,12 +215,21 @@ When a field is found, its value is returned _as written_. <br>
 When no fields were found, `undefined` is returned. If you wish to mimic Node.js behavior, you can assume this means `'index.js'` – but this module does not make that assumption for you.
 
 #### options.browser
-Type: `boolean` <br>
+Type: `boolean` or `string` <br>
 Default: `false`
 
 When truthy, ensures that the `'browser'` field is part of the acceptable `fields` list.
 
 > **Important:** If your custom [`options.fields`](#optionsfields) value includes `'browser'`, then _your_ order is respected. <br>Otherwise, when truthy, `options.browser` will move `'browser'` to the front of the list, making it the top priority.
+
+When `true` and `"browser"` is an object, then `legacy()` will return the the entire `"browser"` object.
+
+You may also pass a string value, which will be treated as an import/file path. When this is the case and `"browser"` is an object, then `legacy()` may return:
+
+* `false` – if the package author decided a file should be ignored; or
+* your `options.browser` string value – but made relative, if not already
+
+> See the [`"browser" field specification](https://github.com/defunctzombie/package-browser-field-spec) for more information.
 
 #### options.fields
 Type: `string[]` <br>

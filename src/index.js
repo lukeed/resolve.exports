@@ -37,6 +37,16 @@ function bail(name, entry, condition) {
 }
 
 /**
+ * @param {string} name the package name
+ * @param {string} entry the target path/import
+ */
+function toName(name, entry) {
+	return entry === name ? '.'
+		: entry[0] === '.' ? entry
+		: entry.replace(new RegExp('^' + name + '\/'), './');
+}
+
+/**
  * @param {object} pkg package.json contents
  * @param {string} [entry] entry name or import path
  * @param {object} [options]
@@ -50,13 +60,8 @@ export function resolve(pkg, entry='.', options={}) {
 	if (exports) {
 		let { browser, requires, conditions=[] } = options;
 
-		let target = entry === name ? '.'
-			: entry[0] === '.' ? entry
-			: entry.replace(new RegExp('^' + name + '\/'), './');
-
-		if (target[0] !== '.') {
-			target = './' + target;
-		}
+		let target = toName(name, entry);
+		if (target[0] !== '.') target = './' + target;
 
 		if (typeof exports === 'string') {
 			return target === '.' ? exports : bail(name, target);
@@ -103,19 +108,34 @@ export function resolve(pkg, entry='.', options={}) {
 /**
  * @param {object} pkg
  * @param {object} [options]
- * @param {boolean} [options.browser]
+ * @param {string|boolean} [options.browser]
  * @param {string[]} [options.fields]
  */
 export function legacy(pkg, options={}) {
-	let i=0, tmp, fields = options.fields || ['module', 'main'];
+	let i=0, value,
+		browser = options.browser,
+		fields = options.fields || ['module', 'main'];
 
-	if (options.browser && !fields.includes('browser')) {
+	if (browser && !fields.includes('browser')) {
 		fields.unshift('browser');
 	}
 
 	for (; i < fields.length; i++) {
-		if ((tmp = pkg[fields[i]]) && typeof tmp === 'string') {
-			return './' + tmp.replace(/^\.?\//, '');
+		if (value = pkg[fields[i]]) {
+			if (typeof value == 'string') {
+				//
+			} else if (typeof value == 'object' && fields[i] == 'browser') {
+				if (typeof browser == 'string') {
+					value = value[browser=toName(pkg.name, browser)];
+					if (value == null) return browser;
+				}
+			} else {
+				continue;
+			}
+
+			return typeof value == 'string'
+				? ('./' + value.replace(/^\.?\//, ''))
+				: value;
 		}
 	}
 }

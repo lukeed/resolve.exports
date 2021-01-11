@@ -98,4 +98,116 @@ browser('should respect existing "browser" order in custom fields', pkg => {
 	assert.is(output, './build/main.js');
 });
 
+// https://github.com/defunctzombie/package-browser-field-spec
+browser('should resolve object format', () => {
+	let pkg = {
+		"name": "foobar",
+		"browser": {
+			"module-a": "./shims/module-a.js",
+			"./server/only.js": "./shims/client-only.js"
+		}
+	};
+
+	assert.is(
+		$exports.legacy(pkg, { browser: 'module-a' }),
+		'./shims/module-a.js'
+	);
+
+	assert.is(
+		$exports.legacy(pkg, { browser: './server/only.js' }),
+		'./shims/client-only.js'
+	);
+
+	assert.is(
+		$exports.legacy(pkg, { browser: 'foobar/server/only.js' }),
+		'./shims/client-only.js'
+	);
+});
+
+browser('should allow object format to "ignore" modules/files :: string', () => {
+	let pkg = {
+		"name": "foobar",
+		"browser": {
+			"module-a": false,
+			"./foo.js": false,
+		}
+	};
+
+	assert.is(
+		$exports.legacy(pkg, { browser: 'module-a' }),
+		false
+	);
+
+	assert.is(
+		$exports.legacy(pkg, { browser: './foo.js' }),
+		false
+	);
+
+	assert.is(
+		$exports.legacy(pkg, { browser: 'foobar/foo.js' }),
+		false
+	);
+});
+
+browser('should return the `browser` string (entry) if no custom mapping :: string', () => {
+	let pkg = {
+		"name": "foobar",
+		"browser": {
+			//
+		}
+	};
+
+	assert.is(
+		$exports.legacy(pkg, {
+			browser: './hello.js'
+		}),
+		'./hello.js'
+	);
+
+	assert.is(
+		$exports.legacy(pkg, {
+			browser: 'foobar/hello.js'
+		}),
+		'./hello.js'
+	);
+});
+
+browser('should return the full "browser" object :: true', () => {
+	let pkg = {
+		"name": "foobar",
+		"browser": {
+			"./other.js": "./world.js"
+		}
+	};
+
+	let output = $exports.legacy(pkg, {
+		browser: true
+	});
+
+	assert.equal(output, pkg.browser);
+});
+
+browser('still ensures string output is made relative', () => {
+	let pkg = {
+		"name": "foobar",
+		"browser": {
+			"./foo.js": 'bar.js',
+		}
+	};
+
+	assert.is(
+		$exports.legacy(pkg, {
+			browser: './foo.js'
+		}),
+		'./bar.js'
+	);
+
+	assert.is(
+		$exports.legacy(pkg, {
+			browser: 'foobar/foo.js'
+		}),
+		'./bar.js'
+	);
+});
+
 browser.run();
