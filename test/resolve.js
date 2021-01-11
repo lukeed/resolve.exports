@@ -171,7 +171,7 @@ resolve('exports["./"]', () => {
 
 	pass(pkg, '$import');
 	pass(pkg, '$import', 'foobar');
-	pass(pkg, '$require', 'foobar', { requires: true });
+	pass(pkg, '$require', 'foobar', { require: true });
 
 	pass(pkg, './package.json', 'package.json');
 	pass(pkg, './package.json', 'foobar/package.json');
@@ -362,9 +362,9 @@ resolve('should handle mixed path/conditions', () => {
 	pass(pkg, '$foo.string', 'foobar/foo');
 	pass(pkg, '$foo.string', './foo');
 
-	pass(pkg, '$foo.require', 'foo', { requires: true });
-	pass(pkg, '$foo.require', 'foobar/foo', { requires: true });
-	pass(pkg, '$foo.require', './foo', { requires: true });
+	pass(pkg, '$foo.require', 'foo', { require: true });
+	pass(pkg, '$foo.require', 'foobar/foo', { require: true });
+	pass(pkg, '$foo.require', './foo', { require: true });
 });
 
 resolve.run();
@@ -383,7 +383,7 @@ requires('should ignore "require" keys by default', pkg => {
 });
 
 requires('should use "require" key when defined first', pkg => {
-	pass(pkg, '$require', '.', { requires: true });
+	pass(pkg, '$require', '.', { require: true });
 });
 
 requires('should ignore "import" key when enabled', () => {
@@ -393,7 +393,7 @@ requires('should ignore "import" key when enabled', () => {
 			"require": "$require",
 		}
 	};
-	pass(pkg, '$require', '.', { requires: true });
+	pass(pkg, '$require', '.', { require: true });
 	pass(pkg, '$import', '.');
 });
 
@@ -404,7 +404,7 @@ requires('should match "default" if "require" is after', () => {
 			"require": "$require",
 		}
 	};
-	pass(pkg, '$default', '.', { requires: true });
+	pass(pkg, '$default', '.', { require: true });
 });
 
 requires.run();

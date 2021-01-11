@@ -68,8 +68,8 @@ resolve(contents, 'foobar/lite'); //=> "./lite/module.mjs"
 resolve(contents, './lite'); //=> "./lite/module.mjs"
 
 // Assume `require` usage
-resolve(contents, 'foobar', { requires: true }); //=> "./dist/require.js"
-resolve(contents, './lite', { requires: true }); //=> "./lite/require.js"
+resolve(contents, 'foobar', { require: true }); //=> "./dist/require.js"
+resolve(contents, './lite', { require: true }); //=> "./lite/require.js"
 
 // Throws "Missing <entry> export in <name> package" Error
 resolve(contents, 'foobar/hello');
@@ -147,7 +147,7 @@ Assume we have a module named "foobar" and whose `pkg` contains `"name": "foobar
 | `'lite'` | `'./lite'` | value was not relative & did not have `pkg.name` prefix |
 
 
-#### options.requires
+#### options.require
 Type: `boolean` <br>
 Default: `false`
 
@@ -191,12 +191,12 @@ resolve(contents, '.', {
 
 resolve(contents, '.', {
   conditions: ['production'],
-  requires: true,
+  require: true,
 }); //=> "./index.require.js"
 
 resolve(contents, '.', {
   conditions: ['production', 'worker'],
-  requires: true,
+  require: true,
 }); //=> "./index.worker.js"
 
 resolve(contents, '.', {

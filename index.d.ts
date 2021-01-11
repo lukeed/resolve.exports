@@ -1,7 +1,7 @@
 export interface Options {
 	browser?: boolean;
 	conditions?: string[];
-	requires?: boolean;
+	require?: boolean;
 }
 
 export function resolve<T=any>(pkg: T, entry: string, options?: Options): string | void;
