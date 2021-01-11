@@ -38,6 +38,16 @@ legacy('should return nothing when no fields', () => {
 	assert.is(output, undefined);
 });
 
+legacy('should ignore boolean-type field values', () => {
+	let pkg = {
+		"module": true,
+		"main": "main.js"
+	};
+
+	let output = $exports.legacy(pkg);
+	assert.is(output, './main.js');
+});
+
 legacy.run();
 
 // ---
