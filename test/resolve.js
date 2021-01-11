@@ -155,6 +155,54 @@ resolve('nested conditions', () => {
 	fail(pkg, './other', 'other');
 });
 
+resolve('nested conditions :: subpath', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./lite": {
+				"node": {
+					"import": "$node.import",
+					"require": "$node.require"
+				},
+				"browser": {
+					"import": "$browser.import",
+					"require": "$browser.require"
+				},
+			}
+		}
+	};
+
+	pass(pkg, '$node.import', 'foobar/lite');
+	pass(pkg, '$node.require', 'foobar/lite', { require: true });
+
+	pass(pkg, '$browser.import', 'foobar/lite', { browser: true });
+	pass(pkg, '$browser.require', 'foobar/lite', { browser: true, require: true });
+});
+
+resolve('nested conditions :: subpath :: inverse', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./lite": {
+				"import": {
+					"browser": "$browser.import",
+					"node": "$node.import",
+				},
+				"require": {
+					"browser": "$browser.require",
+					"node": "$node.require",
+				}
+			}
+		}
+	};
+
+	pass(pkg, '$node.import', 'foobar/lite');
+	pass(pkg, '$node.require', 'foobar/lite', { require: true });
+
+	pass(pkg, '$browser.import', 'foobar/lite', { browser: true });
+	pass(pkg, '$browser.require', 'foobar/lite', { browser: true, require: true });
+});
+
 // https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
 resolve('exports["./"]', () => {
 	let pkg = {
