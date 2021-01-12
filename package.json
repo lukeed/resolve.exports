@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "name": "resolve.exports",
   "repository": "lukeed/resolve.exports",
   "description": "A tiny (727b), correct, general-purpose, and configurable \"exports\" resolver without file-system reliance",
