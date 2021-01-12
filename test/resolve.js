@@ -377,6 +377,10 @@ resolve('exports["./features/*"]', () => {
 	fail(pkg, './features/', 'features/');
 	fail(pkg, './features/', 'foobar/features/');
 
+	pass(pkg, './features/a.js', 'foobar/features/a');
+	pass(pkg, './features/ab.js', 'foobar/features/ab');
+	pass(pkg, './features/abc.js', 'foobar/features/abc');
+
 	pass(pkg, './features/hello.js', 'foobar/features/hello');
 	pass(pkg, './features/world.js', 'foobar/features/world');
 

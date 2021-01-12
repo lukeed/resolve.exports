@@ -97,7 +97,7 @@ export function resolve(pkg, entry='.', options={}) {
 			}
 			if (tmp === '*' && target.startsWith(key.slice(0, -1))) {
 				// do not trigger if no *content* to inject
-				if (target.length - key.length > 1) {
+				if (target.substring(key.length - 1).length > 0) {
 					return (tmp = loop(exports[key], allows))
 						? tmp.replace('*', target.substring(key.length - 1))
 						: bail(name, target, 1);
