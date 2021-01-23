@@ -23,17 +23,34 @@ function loop(exports, keys) {
 	}
 }
 
+function throws(code, msg) {
+	let err = Error(msg);
+	err.code = code;
+	throw err;
+}
+
 /**
  * @param {string} name The package name
  * @param {string} entry The target entry, eg "."
  * @param {number} [condition] Unmatched condition?
  */
-function bail(name, entry, condition) {
-	throw new Error(
-		condition
+function missing(name, entry, condition) {
+	throws('ERR_PACKAGE_PATH_NOT_EXPORTED', condition
 		? `No known conditions for "${entry}" entry in "${name}" package`
 		: `Missing "${entry}" export in "${name}" package`
 	);
+}
+
+/**
+ * @param {string} name The package name
+ * @param {string} entry The target entry, eg "."
+ * @param {string} value The resolved value
+ * @returns {void|string}
+ */
+function validate(name, entry, value) {
+	if (value[0] != '.' || value[1] != '/') throws('ERR_INVALID_PACKAGE_TARGET', `Invalid "${entry}" export in "${name}" package; targets must start with "./"`);
+	// if (value[value.length - 1] == '/') throws('ERR_UNSUPPORTED_DIR_IMPORT', `Invalid "${entry}" export in "${name}" package; targets must not resolve to a directory`);
+	return value;
 }
 
 /**
@@ -64,7 +81,7 @@ export function resolve(pkg, entry='.', options={}) {
 		if (target[0] !== '.') target = './' + target;
 
 		if (typeof exports === 'string') {
-			return target === '.' ? exports : bail(name, target);
+			return target === '.' ? exports : missing(name, target);
 		}
 
 		let allows = new Set(['default', ...conditions]);
@@ -79,33 +96,32 @@ export function resolve(pkg, entry='.', options={}) {
 		}
 
 		if (isSingle) {
-			return target === '.'
-				? loop(exports, allows) || bail(name, target, 1)
-				: bail(name, target);
+			if (target !== '.') return missing(name, target);
+			tmp = loop(exports, allows) || missing(name, target, 1);
+			return validate(name, target, tmp);
 		}
 
 		if (tmp = exports[target]) {
-			return loop(tmp, allows) || bail(name, target, 1);
+			tmp = loop(tmp, allows) || missing(name, target, 1);
+			return validate(name, target, tmp);
 		}
 
 		for (key in exports) {
 			tmp = key[key.length - 1];
 			if (tmp === '/' && target.startsWith(key)) {
-				return (tmp = loop(exports[key], allows))
-					? (tmp + target.substring(key.length))
-					: bail(name, target, 1);
+				tmp = loop(exports[key], allows) || missing(name, target, 1);
+				return validate(name, target, tmp + target.substring(key.length));
 			}
 			if (tmp === '*' && target.startsWith(key.slice(0, -1))) {
 				// do not trigger if no *content* to inject
 				if (target.substring(key.length - 1).length > 0) {
-					return (tmp = loop(exports[key], allows))
-						? tmp.replace('*', target.substring(key.length - 1))
-						: bail(name, target, 1);
+					tmp = loop(exports[key], allows) || missing(name, target, 1);
+					return validate(name, target, tmp.replace('*', target.substring(key.length - 1)));
 				}
 			}
 		}
 
-		return bail(name, target);
+		return missing(name, target);
 	}
 }
 
