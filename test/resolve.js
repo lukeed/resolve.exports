@@ -13,6 +13,7 @@ function fail(pkg, target, ...args) {
 		assert.unreachable();
 	} catch (err) {
 		assert.instance(err, Error);
+		assert.is(err.code, 'ERR_PACKAGE_PATH_NOT_EXPORTED');
 		assert.is(err.message, `Missing "${target}" export in "${pkg.name}" package`);
 	}
 }
@@ -605,6 +606,7 @@ conditions('should throw an error if no known conditions', ctx => {
 		assert.unreachable();
 	} catch (err) {
 		assert.instance(err, Error);
+		assert.is(err.code, 'ERR_PACKAGE_PATH_NOT_EXPORTED');
 		assert.is(err.message, `No known conditions for "." entry in "hello" package`);
 	}
 });
