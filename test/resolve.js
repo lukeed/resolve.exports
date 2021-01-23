@@ -28,12 +28,12 @@ resolve('should be a function', () => {
 resolve('exports=string', () => {
 	let pkg = {
 		"name": "foobar",
-		"exports": "$string",
+		"exports": "./$string",
 	};
 
-	pass(pkg, '$string');
-	pass(pkg, '$string', '.');
-	pass(pkg, '$string', 'foobar');
+	pass(pkg, './$string');
+	pass(pkg, './$string', '.');
+	pass(pkg, './$string', 'foobar');
 
 	fail(pkg, './other', 'other');
 	fail(pkg, './other', 'foobar/other');
@@ -44,14 +44,14 @@ resolve('exports = { self }', () => {
 	let pkg = {
 		"name": "foobar",
 		"exports": {
-			"import": "$import",
-			"require": "$require",
+			"import": "./$import",
+			"require": "./$require",
 		}
 	};
 
-	pass(pkg, '$import');
-	pass(pkg, '$import', '.');
-	pass(pkg, '$import', 'foobar');
+	pass(pkg, './$import');
+	pass(pkg, './$import', '.');
+	pass(pkg, './$import', 'foobar');
 
 	fail(pkg, './other', 'other');
 	fail(pkg, './other', 'foobar/other');
@@ -62,13 +62,13 @@ resolve('exports["."] = string', () => {
 	let pkg = {
 		"name": "foobar",
 		"exports": {
-			".": "$self",
+			".": "./$self",
 		}
 	};
 
-	pass(pkg, '$self');
-	pass(pkg, '$self', '.');
-	pass(pkg, '$self', 'foobar');
+	pass(pkg, './$self');
+	pass(pkg, './$self', '.');
+	pass(pkg, './$self', 'foobar');
 
 	fail(pkg, './other', 'other');
 	fail(pkg, './other', 'foobar/other');
@@ -80,15 +80,15 @@ resolve('exports["."] = object', () => {
 		"name": "foobar",
 		"exports": {
 			".": {
-				"import": "$import",
-				"require": "$require",
+				"import": "./$import",
+				"require": "./$require",
 			}
 		}
 	};
 
-	pass(pkg, '$import');
-	pass(pkg, '$import', '.');
-	pass(pkg, '$import', 'foobar');
+	pass(pkg, './$import');
+	pass(pkg, './$import', '.');
+	pass(pkg, './$import', 'foobar');
 
 	fail(pkg, './other', 'other');
 	fail(pkg, './other', 'foobar/other');
@@ -99,12 +99,12 @@ resolve('exports["./foo"] = string', () => {
 	let pkg = {
 		"name": "foobar",
 		"exports": {
-			"./foo": "$import",
+			"./foo": "./$import",
 		}
 	};
 
-	pass(pkg, '$import', './foo');
-	pass(pkg, '$import', 'foobar/foo');
+	pass(pkg, './$import', './foo');
+	pass(pkg, './$import', 'foobar/foo');
 
 	fail(pkg, '.');
 	fail(pkg, '.', 'foobar');
@@ -116,14 +116,14 @@ resolve('exports["./foo"] = object', () => {
 		"name": "foobar",
 		"exports": {
 			"./foo": {
-				"import": "$import",
-				"require": "$require",
+				"import": "./$import",
+				"require": "./$require",
 			}
 		}
 	};
 
-	pass(pkg, '$import', './foo');
-	pass(pkg, '$import', 'foobar/foo');
+	pass(pkg, './$import', './foo');
+	pass(pkg, './$import', 'foobar/foo');
 
 	fail(pkg, '.');
 	fail(pkg, '.', 'foobar');
@@ -136,19 +136,19 @@ resolve('nested conditions', () => {
 		"name": "foobar",
 		"exports": {
 			"node": {
-				"import": "$node.import",
-				"require": "$node.require"
+				"import": "./$node.import",
+				"require": "./$node.require"
 			},
-			"default": "$default",
+			"default": "./$default",
 		}
 	};
 
-	pass(pkg, '$node.import');
-	pass(pkg, '$node.import', 'foobar');
+	pass(pkg, './$node.import');
+	pass(pkg, './$node.import', 'foobar');
 
 	// browser => no "node" key
-	pass(pkg, '$default', '.', { browser: true });
-	pass(pkg, '$default', 'foobar', { browser: true });
+	pass(pkg, './$default', '.', { browser: true });
+	pass(pkg, './$default', 'foobar', { browser: true });
 
 	fail(pkg, './hello', './hello');
 	fail(pkg, './other', 'foobar/other');
@@ -161,22 +161,22 @@ resolve('nested conditions :: subpath', () => {
 		"exports": {
 			"./lite": {
 				"node": {
-					"import": "$node.import",
-					"require": "$node.require"
+					"import": "./$node.import",
+					"require": "./$node.require"
 				},
 				"browser": {
-					"import": "$browser.import",
-					"require": "$browser.require"
+					"import": "./$browser.import",
+					"require": "./$browser.require"
 				},
 			}
 		}
 	};
 
-	pass(pkg, '$node.import', 'foobar/lite');
-	pass(pkg, '$node.require', 'foobar/lite', { require: true });
+	pass(pkg, './$node.import', 'foobar/lite');
+	pass(pkg, './$node.require', 'foobar/lite', { require: true });
 
-	pass(pkg, '$browser.import', 'foobar/lite', { browser: true });
-	pass(pkg, '$browser.require', 'foobar/lite', { browser: true, require: true });
+	pass(pkg, './$browser.import', 'foobar/lite', { browser: true });
+	pass(pkg, './$browser.require', 'foobar/lite', { browser: true, require: true });
 });
 
 resolve('nested conditions :: subpath :: inverse', () => {
@@ -185,22 +185,22 @@ resolve('nested conditions :: subpath :: inverse', () => {
 		"exports": {
 			"./lite": {
 				"import": {
-					"browser": "$browser.import",
-					"node": "$node.import",
+					"browser": "./$browser.import",
+					"node": "./$node.import",
 				},
 				"require": {
-					"browser": "$browser.require",
-					"node": "$node.require",
+					"browser": "./$browser.require",
+					"node": "./$node.require",
 				}
 			}
 		}
 	};
 
-	pass(pkg, '$node.import', 'foobar/lite');
-	pass(pkg, '$node.require', 'foobar/lite', { require: true });
+	pass(pkg, './$node.import', 'foobar/lite');
+	pass(pkg, './$node.require', 'foobar/lite', { require: true });
 
-	pass(pkg, '$browser.import', 'foobar/lite', { browser: true });
-	pass(pkg, '$browser.require', 'foobar/lite', { browser: true, require: true });
+	pass(pkg, './$browser.import', 'foobar/lite', { browser: true });
+	pass(pkg, './$browser.require', 'foobar/lite', { browser: true, require: true });
 });
 
 // https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
@@ -209,17 +209,17 @@ resolve('exports["./"]', () => {
 		"name": "foobar",
 		"exports": {
 			".": {
-				"require": "$require",
-				"import": "$import"
+				"require": "./$require",
+				"import": "./$import"
 			},
 			"./package.json": "./package.json",
 			"./": "./"
 		}
 	};
 
-	pass(pkg, '$import');
-	pass(pkg, '$import', 'foobar');
-	pass(pkg, '$require', 'foobar', { require: true });
+	pass(pkg, './$import');
+	pass(pkg, './$import', 'foobar');
+	pass(pkg, './$require', 'foobar', { require: true });
 
 	pass(pkg, './package.json', 'package.json');
 	pass(pkg, './package.json', 'foobar/package.json');
@@ -468,29 +468,29 @@ resolve('should handle mixed path/conditions', () => {
 		"exports": {
 			".": [
 				{
-					"import": "$root.import",
+					"import": "./$root.import",
 				},
-				"$root.string"
+				"./$root.string"
 			],
 			"./foo": [
 				{
-					"require": "$foo.require"
+					"require": "./$foo.require"
 				},
-				"$foo.string"
+				"./$foo.string"
 			]
 		}
 	}
 
-	pass(pkg, '$root.import');
-	pass(pkg, '$root.import', 'foobar');
+	pass(pkg, './$root.import');
+	pass(pkg, './$root.import', 'foobar');
 
-	pass(pkg, '$foo.string', 'foo');
-	pass(pkg, '$foo.string', 'foobar/foo');
-	pass(pkg, '$foo.string', './foo');
+	pass(pkg, './$foo.string', 'foo');
+	pass(pkg, './$foo.string', 'foobar/foo');
+	pass(pkg, './$foo.string', './foo');
 
-	pass(pkg, '$foo.require', 'foo', { require: true });
-	pass(pkg, '$foo.require', 'foobar/foo', { require: true });
-	pass(pkg, '$foo.require', './foo', { require: true });
+	pass(pkg, './$foo.require', 'foo', { require: true });
+	pass(pkg, './$foo.require', 'foobar/foo', { require: true });
+	pass(pkg, './$foo.require', './foo', { require: true });
 });
 
 resolve.run();
@@ -499,38 +499,38 @@ resolve.run();
 
 const requires = suite('options.requires', {
 	"exports": {
-		"require": "$require",
-		"import": "$import",
+		"require": "./$require",
+		"import": "./$import",
 	}
 });
 
 requires('should ignore "require" keys by default', pkg => {
-	pass(pkg, '$import');
+	pass(pkg, './$import');
 });
 
 requires('should use "require" key when defined first', pkg => {
-	pass(pkg, '$require', '.', { require: true });
+	pass(pkg, './$require', '.', { require: true });
 });
 
 requires('should ignore "import" key when enabled', () => {
 	let pkg = {
 		"exports": {
-			"import": "$import",
-			"require": "$require",
+			"import": "./$import",
+			"require": "./$require",
 		}
 	};
-	pass(pkg, '$require', '.', { require: true });
-	pass(pkg, '$import', '.');
+	pass(pkg, './$require', '.', { require: true });
+	pass(pkg, './$import', '.');
 });
 
 requires('should match "default" if "require" is after', () => {
 	let pkg = {
 		"exports": {
-			"default": "$default",
-			"require": "$require",
+			"default": "./$default",
+			"require": "./$require",
 		}
 	};
-	pass(pkg, '$default', '.', { require: true });
+	pass(pkg, './$default', '.', { require: true });
 });
 
 requires.run();
@@ -539,29 +539,29 @@ requires.run();
 
 const browser = suite('options.browser', {
 	"exports": {
-		"browser": "$browser",
-		"node": "$node",
+		"browser": "./$browser",
+		"node": "./$node",
 	}
 });
 
 browser('should ignore "browser" keys by default', pkg => {
-	pass(pkg, '$node');
+	pass(pkg, './$node');
 });
 
 browser('should use "browser" key when defined first', pkg => {
-	pass(pkg, '$browser', '.', { browser: true });
+	pass(pkg, './$browser', '.', { browser: true });
 });
 
 browser('should ignore "node" key when enabled', () => {
 	let pkg = {
 		"exports": {
-			"node": "$node",
-			"import": "$import",
-			"browser": "$browser",
+			"node": "./$node",
+			"import": "./$import",
+			"browser": "./$browser",
 		}
 	};
 	// import defined before browser
-	pass(pkg, '$import', '.', { browser: true });
+	pass(pkg, './$import', '.', { browser: true });
 });
 
 browser.run();
@@ -570,22 +570,22 @@ browser.run();
 
 const conditions = suite('options.conditions', {
 	"exports": {
-		"production": "$prod",
-		"development": "$dev",
-		"default": "$default",
+		"production": "./$prod",
+		"development": "./$dev",
+		"default": "./$default",
 	}
 });
 
 conditions('should ignore unknown conditions by default', pkg => {
-	pass(pkg, '$default');
+	pass(pkg, './$default');
 });
 
 conditions('should recognize custom field(s) when specified', pkg => {
-	pass(pkg, '$dev', '.', {
+	pass(pkg, './$dev', '.', {
 		conditions: ['development']
 	});
 
-	pass(pkg, '$prod', '.', {
+	pass(pkg, './$prod', '.', {
 		conditions: ['development', 'production']
 	});
 });
