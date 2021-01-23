@@ -612,3 +612,49 @@ conditions('should throw an error if no known conditions', ctx => {
 });
 
 conditions.run();
+
+// ---
+
+const validation = suite('validation', {
+	"name": "foobar",
+	"exports": {
+		"browser": "/$require",
+		"import": "$prod",
+		"require": "../$require",
+	}
+});
+
+validation('throws `ERR_INVALID_PACKAGE_TARGET` error :: "target"', pkg => {
+	try {
+		$exports.resolve(pkg);
+		assert.unreachable();
+	} catch (err) {
+		assert.instance(err, Error);
+		assert.is(err.code, 'ERR_INVALID_PACKAGE_TARGET');
+		assert.is(err.message, `Invalid "." export in "foobar" package; targets must start with "./"`);
+	}
+});
+
+validation('throws `ERR_INVALID_PACKAGE_TARGET` error :: "../target"', pkg => {
+	try {
+		$exports.resolve(pkg, '.', { require: true });
+		assert.unreachable();
+	} catch (err) {
+		assert.instance(err, Error);
+		assert.is(err.code, 'ERR_INVALID_PACKAGE_TARGET');
+		assert.is(err.message, `Invalid "." export in "foobar" package; targets must start with "./"`);
+	}
+});
+
+validation('throws `ERR_INVALID_PACKAGE_TARGET` error :: "/target"', pkg => {
+	try {
+		$exports.resolve(pkg, '.', { browser: true });
+		assert.unreachable();
+	} catch (err) {
+		assert.instance(err, Error);
+		assert.is(err.code, 'ERR_INVALID_PACKAGE_TARGET');
+		assert.is(err.message, `Invalid "." export in "foobar" package; targets must start with "./"`);
+	}
+});
+
+validation.run();
