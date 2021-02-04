@@ -425,6 +425,33 @@ resolve('exports["./features/*"] :: with "./" key', () => {
 	fail(pkg, '.', 'foobar');
 });
 
+resolve('exports["./features/*"] :: with unsorted keys', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./features/*": "./features/*.js",
+			"./": "./",
+			"./features/data/*": "./features/data/*.json"
+		}
+	};
+
+	pass(pkg, './features', 'features'); // via "./"
+	pass(pkg, './features', 'foobar/features'); // via "./"
+
+	pass(pkg, './features/', 'features/'); // via "./"
+	pass(pkg, './features/', 'foobar/features/'); // via "./"
+
+	pass(pkg, './features/hello.js', 'foobar/features/hello'); // via "./features/*"
+	pass(pkg, './features/world.js', 'foobar/features/world'); // via "./features/*""
+
+	pass(pkg, './features/data/hello.json', 'foobar/features/data/hello'); // via "./features/data/*"
+	pass(pkg, './features/data/world.json', 'foobar/features/data/world'); // via "./features/data/*"
+
+	pass(pkg, './package.json', 'package.json'); // via "./"
+	pass(pkg, './package.json', 'foobar/package.json'); // via "./"
+	pass(pkg, './package.json', './package.json'); // via "./"
+});
+
 resolve('exports["./features/*"] :: conditions', () => {
 	let pkg = {
 		"name": "foobar",

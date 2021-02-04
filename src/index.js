@@ -71,7 +71,7 @@ export function resolve(pkg, entry='.', options={}) {
 		allows.add(require ? 'require' : 'import');
 		allows.add(browser ? 'browser' : 'node');
 
-		let key, tmp, isSingle=false;
+		let key, tmp, isSingle=false, longestMatch='';
 
 		for (key in exports) {
 			isSingle = key[0] !== '.';
@@ -90,18 +90,21 @@ export function resolve(pkg, entry='.', options={}) {
 
 		for (key in exports) {
 			tmp = key[key.length - 1];
-			if (tmp === '/' && target.startsWith(key)) {
-				return (tmp = loop(exports[key], allows))
-					? (tmp + target.substring(key.length))
-					: bail(name, target, 1);
+			if (key.length <= target.length && key.length > longestMatch.length && (
+				tmp === '/' && target.startsWith(key) ||
+				tmp === '*' && target.startsWith(key.slice(0, -1))
+			)) {
+				longestMatch = key;
 			}
-			if (tmp === '*' && target.startsWith(key.slice(0, -1))) {
-				// do not trigger if no *content* to inject
-				if (target.substring(key.length - 1).length > 0) {
-					return (tmp = loop(exports[key], allows))
-						? tmp.replace('*', target.substring(key.length - 1))
-						: bail(name, target, 1);
-				}
+		}
+
+		if (longestMatch) {
+			if (tmp = loop(exports[longestMatch], allows)) {
+				return (longestMatch[longestMatch.length - 1] === '/')
+					? (tmp + target.slice(longestMatch.length))
+					: tmp.replace('*', target.slice(longestMatch.length - 1));
+			} else {
+				return bail(name, target, 1);
 			}
 		}
 
