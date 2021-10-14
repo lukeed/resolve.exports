@@ -610,3 +610,102 @@ conditions('should throw an error if no known conditions', ctx => {
 });
 
 conditions.run();
+
+// ---
+
+const unsafe = suite('options.unsafe', {
+	"exports": {
+		".": {
+			"production": "$prod",
+			"development": "$dev",
+			"default": "$default",
+		},
+		"./spec/type": {
+			"import": "$import",
+			"require": "$require",
+			"default": "$default"
+		},
+		"./spec/env": {
+			"worker": {
+				"default": "$worker"
+			},
+			"browser": "$browser",
+			"node": "$node",
+			"default": "$default"
+		}
+	}
+});
+
+unsafe('should ignore unknown conditions by default', pkg => {
+	pass(pkg, '$default', '.', {
+		unsafe: true,
+	});
+});
+
+unsafe('should ignore "import" and "require" conditions by default', pkg => {
+	pass(pkg, '$default', './spec/type', {
+		unsafe: true,
+	});
+
+	pass(pkg, '$default', './spec/type', {
+		unsafe: true,
+		require: true,
+	});
+});
+
+unsafe('should ignore "node" and "browser" conditions by default', pkg => {
+	pass(pkg, '$default', './spec/type', {
+		unsafe: true,
+	});
+
+	pass(pkg, '$default', './spec/type', {
+		unsafe: true,
+		browser: true,
+	});
+});
+
+unsafe('should respect/accept any custom condition(s) when specified', pkg => {
+	// root, dev only
+	pass(pkg, '$dev', '.', {
+		unsafe: true,
+		conditions: ['development']
+	});
+
+	// root, defined order
+	pass(pkg, '$prod', '.', {
+		unsafe: true,
+		conditions: ['development', 'production']
+	});
+
+	// import vs require, defined order
+	pass(pkg, '$require', './spec/type', {
+		unsafe: true,
+		conditions: ['require']
+	});
+
+	// import vs require, defined order
+	pass(pkg, '$import', './spec/type', {
+		unsafe: true,
+		conditions: ['import', 'require']
+	});
+
+	// import vs require, defined order
+	pass(pkg, '$node', './spec/env', {
+		unsafe: true,
+		conditions: ['node']
+	});
+
+	// import vs require, defined order
+	pass(pkg, '$browser', './spec/env', {
+		unsafe: true,
+		conditions: ['browser', 'node']
+	});
+
+	// import vs require, defined order
+	pass(pkg, '$worker', './spec/env', {
+		unsafe: true,
+		conditions: ['browser', 'node', 'worker']
+	});
+});
+
+unsafe.run();

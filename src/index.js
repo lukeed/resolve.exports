@@ -53,12 +53,13 @@ function toName(name, entry) {
  * @param {boolean} [options.browser]
  * @param {boolean} [options.require]
  * @param {string[]} [options.conditions]
+ * @param {boolean} [options.unsafe]
  */
 export function resolve(pkg, entry='.', options={}) {
 	let { name, exports } = pkg;
 
 	if (exports) {
-		let { browser, require, conditions=[] } = options;
+		let { browser, require, unsafe, conditions=[] } = options;
 
 		let target = toName(name, entry);
 		if (target[0] !== '.') target = './' + target;
@@ -68,8 +69,8 @@ export function resolve(pkg, entry='.', options={}) {
 		}
 
 		let allows = new Set(['default', ...conditions]);
-		allows.add(require ? 'require' : 'import');
-		allows.add(browser ? 'browser' : 'node');
+		unsafe || allows.add(require ? 'require' : 'import');
+		unsafe || allows.add(browser ? 'browser' : 'node');
 
 		let key, tmp, isSingle=false;
 

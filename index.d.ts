@@ -2,6 +2,7 @@ export interface Options {
 	browser?: boolean;
 	conditions?: string[];
 	require?: boolean;
+	unsafe?: boolean;
 }
 
 export function resolve<T=any>(pkg: T, entry: string, options?: Options): string | void;
