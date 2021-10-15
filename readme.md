@@ -206,6 +206,42 @@ resolve(contents, '.', {
 }); //=> "./index.worker.js"
 ```
 
+#### options.unsafe
+Type: `boolean` <br>
+Default: `false`
+
+> **Important:** You probably do not want this option! <br>It will break out of Node's default resolution conditions.
+
+When enabled, this option will ignore **all other options** except [`options.conditions`](#optionsconditions). This is because, when enabled, `options.unsafe` **does not** assume or provide any default conditions except the `"default"` condition.
+
+```js
+resolve(contents);
+//=> Conditions: ["default", "import", "node"]
+
+resolve(contents, { unsafe: true });
+//=> Conditions: ["default"]
+
+resolve(contents, { unsafe: true, require: true, browser: true });
+//=> Conditions: ["default"]
+```
+
+In other words, this means that trying to use `options.require` or `options.browser` alongside `options.unsafe` will have no effect. In order to enable these conditions, you must provide them manually into the `options.conditions` list:
+
+```js
+resolve(contents, {
+  unsafe: true,
+  conditions: ["require"]
+});
+//=> Conditions: ["default", "require"]
+
+resolve(contents, {
+  unsafe: true,
+  conditions: ["browser", "require", "custom123"]
+});
+//=> Conditions: ["default", "browser", "require", "custom123"]
+```
+
+
 ### legacy(pkg, options?)
 Returns: `string` or `undefined`
 
