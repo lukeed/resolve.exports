@@ -1,8 +1,11 @@
-export interface Options {
+export type Options = {
 	browser?: boolean;
 	conditions?: string[];
 	require?: boolean;
-	unsafe?: boolean;
+	unsafe?: false;
+} | {
+	conditions?: string[];
+	unsafe?: true;
 }
 
 export function resolve<T=any>(pkg: T, entry: string, options?: Options): string | void;
