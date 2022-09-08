@@ -62,7 +62,7 @@ export function resolve(pkg, entry='.', options={}) {
 		let { browser, require, unsafe, conditions=[] } = options;
 
 		let target = toName(name, entry);
-		if (target[0] !== '.') target = './' + target;
+		if (target !== '.' && !target.startsWith('./')) target = './' + target;
 
 		if (typeof exports === 'string') {
 			return target === '.' ? exports : bail(name, target);
