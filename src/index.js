@@ -46,6 +46,66 @@ function toName(name, entry) {
 		: entry.replace(new RegExp('^' + name + '\/'), './');
 }
 
+const asterisks = /\*+/;
+const asterisksg = /\*+/g;
+
+/**
+ * 
+ * @param {string} request the request to match
+ * @param {string} path module template path (ex dir/*.mjs)
+ */
+function asWildMatch(request, path) {
+	if (!asterisks.test(path)) {
+		return;
+	}
+
+	const tokens = path.split(asterisks);
+	const last = tokens.pop();
+	if (!request.endsWith(last)) {
+		return false;
+	}
+	
+	const first = tokens.shift();
+	if (!request.startsWith(first)) {
+		return false;
+	}
+
+	request = request.substring(first.length, request.length - last.length);
+
+	let i, tmp;
+	const values = [];
+	while (tmp = tokens.shift()) {
+		i = request.indexOf(tmp);
+
+		// empty values are not allowed.
+		if (i <= 0) {
+			return;
+		}
+
+		values.push(request.substring(0, i));
+		request = request.substring(i + tmp.length);
+	}
+
+	// empty values are not allowed.
+	if (!request) {
+		return false;
+	}
+
+	values.push(request);
+	
+	return values;
+}
+
+/**
+ * @param {string} path module template path (ex dir/*.mjs)
+ * @param {string[]} values replacements for wildcard placeholders
+ */
+function replaceWilds(path, values) {
+	return path.replace(asterisksg, function () {
+		return values.shift() || "";
+	});
+}
+
 /**
  * @param {object} pkg package.json contents
  * @param {string} [entry] entry name or import path
@@ -72,7 +132,7 @@ export function resolve(pkg, entry='.', options={}) {
 		unsafe || allows.add(require ? 'require' : 'import');
 		unsafe || allows.add(browser ? 'browser' : 'node');
 
-		let key, tmp, isSingle=false;
+		let key, tmp, wilds, isSingle=false;
 
 		for (key in exports) {
 			isSingle = key[0] !== '.';
@@ -89,20 +149,18 @@ export function resolve(pkg, entry='.', options={}) {
 			return loop(tmp, allows) || bail(name, target, 1);
 		}
 
-		for (key in exports) {
+		for (key in exports) {		
 			tmp = key[key.length - 1];
 			if (tmp === '/' && target.startsWith(key)) {
 				return (tmp = loop(exports[key], allows))
 					? (tmp + target.substring(key.length))
 					: bail(name, target, 1);
 			}
-			if (tmp === '*' && target.startsWith(key.slice(0, -1))) {
-				// do not trigger if no *content* to inject
-				if (target.substring(key.length - 1).length > 0) {
-					return (tmp = loop(exports[key], allows))
-						? tmp.replace('*', target.substring(key.length - 1))
-						: bail(name, target, 1);
-				}
+
+			if (wilds = asWildMatch(target, key)) {
+				return (tmp = loop(exports[key], allows))
+					? replaceWilds(tmp, wilds)
+					: bail(name, target, 1);
 			}
 		}
 

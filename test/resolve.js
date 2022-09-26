@@ -462,6 +462,34 @@ resolve('exports["./features/*"] :: conditions', () => {
 	pass(pkg, './browser.require/hello.js', 'foobar/features/hello', { browser: true, require: true });
 });
 
+resolve('advanced wildcard handling (x * y)', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./features/*/index": {
+				"import": "./import/*.mjs",
+			},
+		}
+	};
+
+	pass(pkg, './import/hello.mjs', './features/hello/index');
+	pass(pkg, './import/hello.mjs', 'foobar/features/hello/index');
+});
+
+resolve('advanced wildcard handling (x * y * z)', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./features/*/*/index": {
+				"import": "./import/*/dist/*.mjs",
+			},
+		}
+	};
+
+	pass(pkg, './import/debug/dist/hello.mjs', './features/debug/hello/index');
+	pass(pkg, './import/debug/dist/hello.mjs', 'foobar/features/debug/hello/index');
+});
+
 resolve('should handle mixed path/conditions', () => {
 	let pkg = {
 		"name": "foobar",
