@@ -62,7 +62,9 @@ export function resolve(pkg, entry='.', options={}) {
 		let { browser, require, unsafe, conditions=[] } = options;
 
 		let target = toName(name, entry);
-		if (target !== '.' && !target.startsWith('./')) target = './' + target;
+		if (target !== '.' && !target.startsWith('./')) {
+			target = './' + target; // ".ini" => "./.ini"
+		}
 
 		if (typeof exports === 'string') {
 			return target === '.' ? exports : bail(name, target);
