@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        nodejs: [10, 12, 14]
+        nodejs: [10, 12, 14, 16, 18]
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
@@ -38,7 +38,7 @@ jobs:
       run: nyc --include=src npm test
 
     - name: Report
-      if: matrix.nodejs >= 14
+      if: matrix.nodejs >= 18
       run: |
         nyc report --reporter=text-lcov > coverage.lcov
         bash <(curl -s https://codecov.io/bash)
