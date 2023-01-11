@@ -275,7 +275,67 @@ resolve('exports["./*"]', () => {
 	pass(pkg, './cheese/hello/world.js.mjs', './hello/world.js');
 });
 
-// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
+resolve('exports["./dir*"]', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./dir*": "./cheese/*.mjs"
+		}
+	};
+
+	fail(pkg, '.', ".");
+	fail(pkg, '.', "foobar");
+
+	pass(pkg, './cheese/test.mjs', 'dirtest');
+	pass(pkg, './cheese/test.mjs', 'foobar/dirtest');
+
+	pass(pkg, './cheese/test/wheel.mjs', 'dirtest/wheel');
+	pass(pkg, './cheese/test/wheel.mjs', 'foobar/dirtest/wheel');
+});
+
+// https://github.com/lukeed/resolve.exports/issues/9
+resolve('exports["./dir*"] :: repeat "*" value', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./dir*": "./*sub/dir*/file.js"
+		}
+	};
+
+	fail(pkg, '.', ".");
+	fail(pkg, '.', "foobar");
+
+	pass(pkg, './testsub/dirtest/file.js', 'dirtest');
+	pass(pkg, './testsub/dirtest/file.js', 'foobar/dirtest');
+
+	pass(pkg, './test/innersub/dirtest/inner/file.js', 'dirtest/inner');
+	pass(pkg, './test/innersub/dirtest/inner/file.js', 'foobar/dirtest/inner');
+});
+
+resolve('exports["./dir*"] :: share "name" start', () => {
+	let pkg = {
+		"name": "director",
+		"exports": {
+			"./dir*": "./*sub/dir*/file.js"
+		}
+	};
+
+	fail(pkg, '.', ".");
+	fail(pkg, '.', "director");
+
+	pass(pkg, './testsub/dirtest/file.js', 'dirtest');
+	pass(pkg, './testsub/dirtest/file.js', 'director/dirtest');
+
+	pass(pkg, './test/innersub/dirtest/inner/file.js', 'dirtest/inner');
+	pass(pkg, './test/innersub/dirtest/inner/file.js', 'director/dirtest/inner');
+});
+
+/**
+ * @deprecated Documentation-only deprecation in Node 14.13
+ * @deprecated Runtime deprecation in Node 16.0
+ * @removed Removed in Node 18.0
+ * @see https://nodejs.org/docs/latest-v16.x/api/packages.html#subpath-folder-mappings
+ */
 resolve('exports["./features/"]', () => {
 	let pkg = {
 		"name": "foobar",

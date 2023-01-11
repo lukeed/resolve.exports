@@ -102,7 +102,7 @@ export function resolve(pkg, entry='.', options={}) {
 				// do not trigger if no *content* to inject
 				if (target.substring(key.length - 1).length > 0) {
 					return (tmp = loop(exports[key], allows))
-						? tmp.replace('*', target.substring(key.length - 1))
+						? tmp.replace(/[*]/g, target.substring(key.length - 1))
 						: bail(name, target, 1);
 				}
 			}
