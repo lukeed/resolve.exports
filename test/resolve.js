@@ -517,6 +517,50 @@ resolve('exports["./features/*"] :: with "./" key first', () => {
 	fail(pkg, '.', 'foobar');
 });
 
+// https://github.com/lukeed/resolve.exports/issues/16
+resolve('exports["./features/*"] :: with `null` internals', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./features/*": "./src/features/*.js",
+			"./features/internal/*": null
+		}
+	};
+
+	pass(pkg, './src/features/hello.js', 'features/hello');
+	pass(pkg, './src/features/hello.js', 'foobar/features/hello');
+
+	pass(pkg, './src/features/foo/bar.js', 'features/foo/bar');
+	pass(pkg, './src/features/foo/bar.js', 'foobar/features/foo/bar');
+
+	// TODO? Native throws `ERR_PACKAGE_PATH_NOT_EXPORTED`
+	// Currently throwing `Missing "%s" export in "$s" package`
+	fail(pkg, './features/internal/hello', 'features/internal/hello');
+	fail(pkg, './features/internal/foo/bar', 'features/internal/foo/bar');
+});
+
+// https://github.com/lukeed/resolve.exports/issues/16
+resolve('exports["./features/*"] :: with `null` internals first', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./features/internal/*": null,
+			"./features/*": "./src/features/*.js",
+		}
+	};
+
+	pass(pkg, './src/features/hello.js', 'features/hello');
+	pass(pkg, './src/features/hello.js', 'foobar/features/hello');
+
+	pass(pkg, './src/features/foo/bar.js', 'features/foo/bar');
+	pass(pkg, './src/features/foo/bar.js', 'foobar/features/foo/bar');
+
+	// TODO? Native throws `ERR_PACKAGE_PATH_NOT_EXPORTED`
+	// Currently throwing `Missing "%s" export in "$s" package`
+	fail(pkg, './features/internal/hello', 'features/internal/hello');
+	fail(pkg, './features/internal/foo/bar', 'features/internal/foo/bar');
+});
+
 // https://nodejs.org/docs/latest-v18.x/api/packages.html#package-entry-points
 resolve('exports["./features/*"] :: with "./features/*.js" key', () => {
 	let pkg = {

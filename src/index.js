@@ -116,7 +116,7 @@ export function resolve(pkg, entry='.', options={}) {
 			if (k && kv) {
 				// must have value
 				tmp = loop(exports[k], allows);
-				if (!tmp) return bail(name, target, 1);
+				if (!tmp) return bail(name, target);
 
 				return tmp.includes('*')
 					? tmp.replace(/[*]/g, kv)
