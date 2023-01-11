@@ -382,11 +382,11 @@ resolve('exports["./features/*"]', () => {
 	pass(pkg, './features/abc.js', 'foobar/features/abc');
 
 	pass(pkg, './features/hello.js', 'foobar/features/hello');
-	pass(pkg, './features/world.js', 'foobar/features/world');
+	pass(pkg, './features/foo/bar.js', 'foobar/features/foo/bar');
 
-	// incorrect, but matches Node. evaluate as defined
+	// Valid: Pattern trailers allow any exact substrings to be matched
 	pass(pkg, './features/hello.js.js', 'foobar/features/hello.js');
-	pass(pkg, './features/world.js.js', 'foobar/features/world.js');
+	pass(pkg, './features/foo/bar.js.js', 'foobar/features/foo/bar.js');
 
 	fail(pkg, './package.json', 'package.json');
 	fail(pkg, './package.json', 'foobar/package.json');
@@ -410,11 +410,11 @@ resolve('exports["./features/*"] :: with "./" key', () => {
 	pass(pkg, './features/', 'foobar/features/'); // via "./"
 
 	pass(pkg, './features/hello.js', 'foobar/features/hello');
-	pass(pkg, './features/world.js', 'foobar/features/world');
+	pass(pkg, './features/foo/bar.js', 'foobar/features/foo/bar');
 
-	// incorrect, but matches Node. evaluate as defined
+	// Valid: Pattern trailers allow any exact substrings to be matched
 	pass(pkg, './features/hello.js.js', 'foobar/features/hello.js');
-	pass(pkg, './features/world.js.js', 'foobar/features/world.js');
+	pass(pkg, './features/foo/bar.js.js', 'foobar/features/foo/bar.js');
 
 	pass(pkg, './package.json', 'package.json');
 	pass(pkg, './package.json', 'foobar/package.json');
