@@ -1,6 +1,6 @@
 # resolve.exports [![CI](https://github.com/lukeed/resolve.exports/workflows/CI/badge.svg)](https://github.com/lukeed/resolve.exports/actions) [![codecov](https://codecov.io/gh/lukeed/resolve.exports/branch/master/graph/badge.svg?token=4P7d4Omw2h)](https://codecov.io/gh/lukeed/resolve.exports)
 
-> A tiny (737b), correct, general-purpose, and configurable `"exports"` resolver without file-system reliance
+> A tiny (813b), correct, general-purpose, and configurable `"exports"` resolver without file-system reliance
 
 ***Why?***
 
