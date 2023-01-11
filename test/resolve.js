@@ -485,6 +485,69 @@ resolve('exports["./features/*"] :: with "./" key', () => {
 	fail(pkg, '.', 'foobar');
 });
 
+// https://github.com/lukeed/resolve.exports/issues/7
+resolve('exports["./features/*"] :: with "./" key first', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./": "./",
+			"./features/*": "./features/*.js"
+		}
+	};
+
+	pass(pkg, './features', 'features'); // via "./"
+	pass(pkg, './features', 'foobar/features'); // via "./"
+
+	pass(pkg, './features/', 'features/'); // via "./"
+	pass(pkg, './features/', 'foobar/features/'); // via "./"
+
+	pass(pkg, './features/hello.js', 'foobar/features/hello');
+	pass(pkg, './features/foo/bar.js', 'foobar/features/foo/bar');
+
+	// Valid: Pattern trailers allow any exact substrings to be matched
+	pass(pkg, './features/hello.js.js', 'foobar/features/hello.js');
+	pass(pkg, './features/foo/bar.js.js', 'foobar/features/foo/bar.js');
+
+	pass(pkg, './package.json', 'package.json');
+	pass(pkg, './package.json', 'foobar/package.json');
+	pass(pkg, './package.json', './package.json');
+
+	// Does NOT hit "./" (match Node)
+	fail(pkg, '.', '.');
+	fail(pkg, '.', 'foobar');
+});
+
+// https://nodejs.org/docs/latest-v18.x/api/packages.html#package-entry-points
+resolve('exports["./features/*"] :: with "./features/*.js" key', () => {
+	let pkg = {
+		"name": "foobar",
+		"exports": {
+			"./features/*": "./features/*.js",
+			"./features/*.js": "./features/*.js",
+		}
+	};
+
+	fail(pkg, './features', 'features');
+	fail(pkg, './features', 'foobar/features');
+
+	fail(pkg, './features/', 'features/');
+	fail(pkg, './features/', 'foobar/features/');
+
+	pass(pkg, './features/a.js', 'foobar/features/a');
+	pass(pkg, './features/ab.js', 'foobar/features/ab');
+	pass(pkg, './features/abc.js', 'foobar/features/abc');
+
+	pass(pkg, './features/hello.js', 'foobar/features/hello');
+	pass(pkg, './features/hello.js', 'foobar/features/hello.js');
+
+	pass(pkg, './features/foo/bar.js', 'foobar/features/foo/bar');
+	pass(pkg, './features/foo/bar.js', 'foobar/features/foo/bar.js');
+
+	fail(pkg, './package.json', 'package.json');
+	fail(pkg, './package.json', 'foobar/package.json');
+	fail(pkg, './package.json', './package.json');
+});
+
 resolve('exports["./features/*"] :: conditions', () => {
 	let pkg = {
 		"name": "foobar",

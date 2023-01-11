@@ -74,7 +74,7 @@ export function resolve(pkg, entry='.', options={}) {
 		unsafe || allows.add(require ? 'require' : 'import');
 		unsafe || allows.add(browser ? 'browser' : 'node');
 
-		let key, tmp, isSingle=false;
+		let key, m, k, kv, tmp, isSingle=false;
 
 		for (key in exports) {
 			isSingle = key[0] !== '.';
@@ -91,20 +91,36 @@ export function resolve(pkg, entry='.', options={}) {
 			return loop(tmp, allows) || bail(name, target, 1);
 		}
 
-		for (key in exports) {
-			tmp = key[key.length - 1];
-			if (tmp === '/' && target.startsWith(key)) {
-				return (tmp = loop(exports[key], allows))
-					? (tmp + target.substring(key.length))
-					: bail(name, target, 1);
-			}
-			if (tmp === '*' && target.startsWith(key.slice(0, -1))) {
-				// do not trigger if no *content* to inject
-				if (target.substring(key.length - 1).length > 0) {
-					return (tmp = loop(exports[key], allows))
-						? tmp.replace(/[*]/g, target.substring(key.length - 1))
-						: bail(name, target, 1);
+		if (target !== '.') {
+			for (key in exports) {
+				if (k && key.length < k.length) {
+					// do not allow "./" to match if already matched "./foo*" key
+				} else if (key[key.length - 1] === '/' && target.startsWith(key)) {
+					kv = target.substring(key.length);
+					k = key;
+				} else {
+					tmp = key.indexOf('*', 2);
+					if (!!~tmp) {
+						m = RegExp(
+							'^\.\/' + key.substring(2, tmp) + '(.*)' + key.substring(1+tmp)
+						).exec(target);
+
+						if (m && m[1]) {
+							kv = m[1];
+							k = key;
+						}
+					}
 				}
+			}
+
+			if (k && kv) {
+				// must have value
+				tmp = loop(exports[k], allows);
+				if (!tmp) return bail(name, target, 1);
+
+				return tmp.includes('*')
+					? tmp.replace(/[*]/g, kv)
+					: tmp + kv;
 			}
 		}
 
