@@ -493,6 +493,22 @@ resolve('should handle mixed path/conditions', () => {
 	pass(pkg, '$foo.require', './foo', { require: true });
 });
 
+resolve('should handle file with leading dot', () => {
+	let pkg = {
+		"version": "2.41.0",
+		"name": "aws-cdk-lib",
+		"exports": {
+			".": "./index.js",
+			"./package.json": "./package.json",
+			"./.jsii": "./.jsii",
+			"./.warnings.jsii.js": "./.warnings.jsii.js",
+			"./alexa-ask": "./alexa-ask/index.js"
+		}
+	};
+
+	pass(pkg, "./.warnings.jsii.js", ".warnings.jsii.js");
+});
+
 resolve.run();
 
 // ---
