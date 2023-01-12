@@ -2,6 +2,8 @@ import { suite } from 'uvu';
 import * as assert from 'uvu/assert';
 import * as $exports from '../src';
 
+import type { Package } from '../src';
+
 const legacy = suite('$.legacy');
 
 legacy('should be a function', () => {
@@ -9,7 +11,7 @@ legacy('should be a function', () => {
 });
 
 legacy('should prefer "module" > "main" entry', () => {
-	let pkg = {
+	let pkg: Package = {
 		"name": "foobar",
 		"module": "build/module.js",
 		"main": "build/main.js",
@@ -20,7 +22,7 @@ legacy('should prefer "module" > "main" entry', () => {
 });
 
 legacy('should read "main" field', () => {
-	let pkg = {
+	let pkg: Package = {
 		"name": "foobar",
 		"main": "build/main.js",
 	};
@@ -30,7 +32,7 @@ legacy('should read "main" field', () => {
 });
 
 legacy('should return nothing when no fields', () => {
-	let pkg = {
+	let pkg: Package = {
 		"name": "foobar"
 	};
 
@@ -44,7 +46,7 @@ legacy('should ignore boolean-type field values', () => {
 		"main": "main.js"
 	};
 
-	let output = $exports.legacy(pkg);
+	let output = $exports.legacy(pkg as any);
 	assert.is(output, './main.js');
 });
 
@@ -52,7 +54,7 @@ legacy.run();
 
 // ---
 
-const fields = suite('options.fields', {
+const fields = suite<Package>('options.fields', {
 	"name": "foobar",
 	"module": "build/module.js",
 	"browser": "build/browser.js",
@@ -83,7 +85,7 @@ fields.run();
 
 // ---
 
-const browser = suite('options.browser', {
+const browser = suite<Package>('options.browser', {
 	"name": "foobar",
 	"module": "build/module.js",
 	"browser": "build/browser.js",
@@ -110,7 +112,7 @@ browser('should respect existing "browser" order in custom fields', pkg => {
 
 // https://github.com/defunctzombie/package-browser-field-spec
 browser('should resolve object format', () => {
-	let pkg = {
+	let pkg: Package = {
 		"name": "foobar",
 		"browser": {
 			"module-a": "./shims/module-a.js",
@@ -135,7 +137,7 @@ browser('should resolve object format', () => {
 });
 
 browser('should allow object format to "ignore" modules/files :: string', () => {
-	let pkg = {
+	let pkg: Package = {
 		"name": "foobar",
 		"browser": {
 			"module-a": false,
@@ -160,7 +162,7 @@ browser('should allow object format to "ignore" modules/files :: string', () => 
 });
 
 browser('should return the `browser` string (entry) if no custom mapping :: string', () => {
-	let pkg = {
+	let pkg: Package = {
 		"name": "foobar",
 		"browser": {
 			//
@@ -183,7 +185,7 @@ browser('should return the `browser` string (entry) if no custom mapping :: stri
 });
 
 browser('should return the full "browser" object :: true', () => {
-	let pkg = {
+	let pkg: Package = {
 		"name": "foobar",
 		"browser": {
 			"./other.js": "./world.js"
@@ -198,12 +200,12 @@ browser('should return the full "browser" object :: true', () => {
 });
 
 browser('still ensures string output is made relative', () => {
-	let pkg = {
+	let pkg: Package = {
 		"name": "foobar",
 		"browser": {
-			"./foo.js": 'bar.js',
+			"./foo.js": "bar.js",
 		}
-	};
+	} as any;
 
 	assert.is(
 		$exports.legacy(pkg, {

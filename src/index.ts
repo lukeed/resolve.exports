@@ -1,14 +1,47 @@
-/**
- * @param {object} exports
- * @param {Set<string>} keys
- */
-function loop(exports, keys) {
+import type { Options } from '../index.d';
+
+type Condition = string;
+
+export type Entry = `#${string}`; // imports
+
+export type Path = `.${string}`;
+export type Subpath = `./${string}`;
+
+export type Imports = {
+	[entry: Entry]: Value | null;
+}
+
+export type Exports = Subpath | {
+	[path: Path]: Value | null;
+	[cond: Condition]: Value | null;
+};
+
+export type Value = {
+	[c: Condition]: Value | null;
+} | Subpath | Value[];
+
+export type Browser = string[] | {
+	[file: Subpath | string]: string | false;
+}
+
+export type Package = {
+	name: string;
+	version?: string;
+	module?: string;
+	main?: string;
+	imports?: Imports;
+	exports?: Exports;
+	browser?: Browser | string;
+	[key: string]: any;
+};
+
+function loop(exports: Exports | Value[] | null, keys: Set<Condition>): Subpath|void {
 	if (typeof exports === 'string') {
 		return exports;
 	}
 
 	if (exports) {
-		let idx, tmp;
+		let idx: number | string, tmp: File|Value|void;
 		if (Array.isArray(exports)) {
 			for (idx=0; idx < exports.length; idx++) {
 				if (tmp = loop(exports[idx], keys)) return tmp;
@@ -24,11 +57,11 @@ function loop(exports, keys) {
 }
 
 /**
- * @param {string} name The package name
- * @param {string} entry The target entry, eg "."
- * @param {number} [condition] Unmatched condition?
+ * @param name The package name
+ * @param entry The target entry, eg "."
+ * @param condition Unmatched condition?
  */
-function bail(name, entry, condition) {
+function bail(name: string, entry: Path, condition?: number): never {
 	throw new Error(
 		condition
 		? `No known conditions for "${entry}" entry in "${name}" package`
@@ -37,33 +70,26 @@ function bail(name, entry, condition) {
 }
 
 /**
- * @param {string} name the package name
- * @param {string} entry the target path/import
+ * @param name the package name
+ * @param entry the target path/import
  */
-function toName(name, entry) {
-	return entry === name ? '.'
+function toName(name: string, entry: string): Path {
+	return (
+		entry === name ? '.'
 		: entry[0] === '.' ? entry
-		: entry.replace(new RegExp('^' + name + '\/'), './');
+		: entry.replace(new RegExp('^' + name + '\/'), './')
+	 ) as Path;
 }
 
-/**
- * @param {object} pkg package.json contents
- * @param {string} [entry] entry name or import path
- * @param {object} [options]
- * @param {boolean} [options.browser]
- * @param {boolean} [options.require]
- * @param {string[]} [options.conditions]
- * @param {boolean} [options.unsafe]
- */
-export function resolve(pkg, entry='.', options={}) {
+export function resolve(pkg: Package, entry = '.', options?: Options) {
 	let { name, exports } = pkg;
 
 	if (exports) {
-		let { browser, require, unsafe, conditions=[] } = options;
+		let { browser, require, unsafe, conditions=[] } = options || {};
 
 		let target = toName(name, entry);
 		if (target !== '.' && !target.startsWith('./')) {
-			target = './' + target; // ".ini" => "./.ini"
+			target = './' + target as Subpath; // ".ini" => "./.ini"
 		}
 
 		if (typeof exports === 'string') {
@@ -128,14 +154,14 @@ export function resolve(pkg, entry='.', options={}) {
 	}
 }
 
-/**
- * @param {object} pkg
- * @param {object} [options]
- * @param {string|boolean} [options.browser]
- * @param {string[]} [options.fields]
- */
-export function legacy(pkg, options={}) {
-	let i=0, value,
+type LegacyOptions = {
+	fields?: string[];
+	browser?: string | boolean;
+}
+
+export function legacy(pkg: Package, options: LegacyOptions = {}): Subpath | Browser | void {
+	let i=0,
+		value: Package['module' | 'main' | 'browser'],
 		browser = options.browser,
 		fields = options.fields || ['module', 'main'];
 
@@ -150,14 +176,14 @@ export function legacy(pkg, options={}) {
 			} else if (typeof value == 'object' && fields[i] == 'browser') {
 				if (typeof browser == 'string') {
 					value = value[browser=toName(pkg.name, browser)];
-					if (value == null) return browser;
+					if (value == null) return browser as Subpath;
 				}
 			} else {
 				continue;
 			}
 
 			return typeof value == 'string'
-				? ('./' + value.replace(/^\.?\//, ''))
+				? ('./' + value.replace(/^\.?\//, '')) as Subpath
 				: value;
 		}
 	}
