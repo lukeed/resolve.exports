@@ -22,7 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        nodejs: [10, 12, 14, 16, 18]
+        # Node 10.x not supported by tsm & bundt
+        nodejs: [12, 14, 16, 18]
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
