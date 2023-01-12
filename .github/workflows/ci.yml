@@ -35,14 +35,15 @@ jobs:
         npm install
         npm install -g nyc
 
-    - name: Compile
-      run: npm run build
-
     - name: Type Check
       run: npm run types
 
     - name: Test w/ Coverage
       run: nyc --include=src npm test
+
+    - name: Compile
+      if: matrix.nodejs >= 18
+      run: npm run build
 
     - name: Report
       if: matrix.nodejs >= 18
