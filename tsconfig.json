@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "esnext",
+    "strictBindCallApply": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "nodenext",
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "alwaysStrict": true,
+    "module": "esnext",
+    "noEmit": true,
+    "paths": {
+      "resolve.exports": ["./index.d.ts"]
+    }
+  },
+  "include": [
+    "src", "test"
+  ]
+}

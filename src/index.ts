@@ -100,7 +100,12 @@ export function resolve(pkg: Package, entry = '.', options?: Options) {
 		unsafe || allows.add(require ? 'require' : 'import');
 		unsafe || allows.add(browser ? 'browser' : 'node');
 
-		let key, m, k, kv, tmp, isSingle=false;
+		let key: Path | string,
+			m: RegExpExecArray | null,
+			k: Path | undefined,
+			kv: string | undefined | null,
+			tmp: any, // mixed
+			isSingle = false;
 
 		for (key in exports) {
 			isSingle = key[0] !== '.';
@@ -123,7 +128,7 @@ export function resolve(pkg: Package, entry = '.', options?: Options) {
 					// do not allow "./" to match if already matched "./foo*" key
 				} else if (key[key.length - 1] === '/' && target.startsWith(key)) {
 					kv = target.substring(key.length);
-					k = key;
+					k = key as Path;
 				} else {
 					tmp = key.indexOf('*', 2);
 					if (!!~tmp) {
@@ -133,7 +138,7 @@ export function resolve(pkg: Package, entry = '.', options?: Options) {
 
 						if (m && m[1]) {
 							kv = m[1];
-							k = key;
+							k = key as Path;
 						}
 					}
 				}
@@ -175,7 +180,10 @@ export function legacy(pkg: Package, options: LegacyOptions = {}): Subpath | Bro
 				//
 			} else if (typeof value == 'object' && fields[i] == 'browser') {
 				if (typeof browser == 'string') {
-					value = value[browser=toName(pkg.name, browser)];
+					// TODO: is this right? browser object format so loose
+					value = (value as Record<string, string|undefined>)[
+						browser = toName(pkg.name, browser)
+					];
 					if (value == null) return browser as Subpath;
 				}
 			} else {

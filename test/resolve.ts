@@ -16,7 +16,7 @@ function fail(pkg: Package, target: Path, entry?: string, options?: Options) {
 		assert.unreachable();
 	} catch (err) {
 		assert.instance(err, Error);
-		assert.is(err.message, `Missing "${target}" export in "${pkg.name}" package`);
+		assert.is((err as Error).message, `Missing "${target}" export in "${pkg.name}" package`);
 	}
 }
 
@@ -798,7 +798,7 @@ conditions('should throw an error if no known conditions', ctx => {
 		assert.unreachable();
 	} catch (err) {
 		assert.instance(err, Error);
-		assert.is(err.message, `No known conditions for "." entry in "hello" package`);
+		assert.is((err as Error).message, `No known conditions for "." entry in "hello" package`);
 	}
 });
 
