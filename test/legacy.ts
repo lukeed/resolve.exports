@@ -1,13 +1,13 @@
 import { suite } from 'uvu';
 import * as assert from 'uvu/assert';
-import * as $exports from '../src';
+import * as lib from '../src';
 
-import type { Package } from '../src';
+import type { Package } from 'resolve.exports';
 
 const legacy = suite('$.legacy');
 
 legacy('should be a function', () => {
-	assert.type($exports.legacy, 'function');
+	assert.type(lib.legacy, 'function');
 });
 
 legacy('should prefer "module" > "main" entry', () => {
@@ -17,7 +17,7 @@ legacy('should prefer "module" > "main" entry', () => {
 		"main": "build/main.js",
 	};
 
-	let output = $exports.legacy(pkg);
+	let output = lib.legacy(pkg);
 	assert.is(output, './build/module.js');
 });
 
@@ -27,7 +27,7 @@ legacy('should read "main" field', () => {
 		"main": "build/main.js",
 	};
 
-	let output = $exports.legacy(pkg);
+	let output = lib.legacy(pkg);
 	assert.is(output, './build/main.js');
 });
 
@@ -36,7 +36,7 @@ legacy('should return nothing when no fields', () => {
 		"name": "foobar"
 	};
 
-	let output = $exports.legacy(pkg);
+	let output = lib.legacy(pkg);
 	assert.is(output, undefined);
 });
 
@@ -46,7 +46,7 @@ legacy('should ignore boolean-type field values', () => {
 		"main": "main.js"
 	};
 
-	let output = $exports.legacy(pkg as any);
+	let output = lib.legacy(pkg as any);
 	assert.is(output, './main.js');
 });
 
@@ -63,18 +63,18 @@ const fields = suite<Package>('options.fields', {
 });
 
 fields('should customize field search order', pkg => {
-	let output = $exports.legacy(pkg);
+	let output = lib.legacy(pkg);
 	assert.is(output, './build/module.js', 'default: module');
 
-	output = $exports.legacy(pkg, { fields: ['main'] });
+	output = lib.legacy(pkg, { fields: ['main'] });
 	assert.is(output, './build/main.js', 'custom: main only');
 
-	output = $exports.legacy(pkg, { fields: ['custom', 'main', 'module'] });
+	output = lib.legacy(pkg, { fields: ['custom', 'main', 'module'] });
 	assert.is(output, './build/custom.js', 'custom: custom > main > module');
 });
 
 fields('should return first *resolved* field', pkg => {
-	let output = $exports.legacy(pkg, {
+	let output = lib.legacy(pkg, {
 		fields: ['howdy', 'partner', 'hello', 'world', 'main']
 	});
 
@@ -94,15 +94,15 @@ const browser = suite<Package>('options.browser', {
 });
 
 browser('should prioritize "browser" field when defined', pkg => {
-	let output = $exports.legacy(pkg);
+	let output = lib.legacy(pkg);
 	assert.is(output, './build/module.js');
 
-	output = $exports.legacy(pkg, { browser: true });
+	output = lib.legacy(pkg, { browser: true });
 	assert.is(output, './build/browser.js');
 });
 
 browser('should respect existing "browser" order in custom fields', pkg => {
-	let output = $exports.legacy(pkg, {
+	let output = lib.legacy(pkg, {
 		fields: ['main', 'browser'],
 		browser: true,
 	});
@@ -121,17 +121,17 @@ browser('should resolve object format', () => {
 	};
 
 	assert.is(
-		$exports.legacy(pkg, { browser: 'module-a' }),
+		lib.legacy(pkg, { browser: 'module-a' }),
 		'./shims/module-a.js'
 	);
 
 	assert.is(
-		$exports.legacy(pkg, { browser: './server/only.js' }),
+		lib.legacy(pkg, { browser: './server/only.js' }),
 		'./shims/client-only.js'
 	);
 
 	assert.is(
-		$exports.legacy(pkg, { browser: 'foobar/server/only.js' }),
+		lib.legacy(pkg, { browser: 'foobar/server/only.js' }),
 		'./shims/client-only.js'
 	);
 });
@@ -146,17 +146,17 @@ browser('should allow object format to "ignore" modules/files :: string', () => 
 	};
 
 	assert.is(
-		$exports.legacy(pkg, { browser: 'module-a' }),
+		lib.legacy(pkg, { browser: 'module-a' }),
 		false
 	);
 
 	assert.is(
-		$exports.legacy(pkg, { browser: './foo.js' }),
+		lib.legacy(pkg, { browser: './foo.js' }),
 		false
 	);
 
 	assert.is(
-		$exports.legacy(pkg, { browser: 'foobar/foo.js' }),
+		lib.legacy(pkg, { browser: 'foobar/foo.js' }),
 		false
 	);
 });
@@ -170,14 +170,14 @@ browser('should return the `browser` string (entry) if no custom mapping :: stri
 	};
 
 	assert.is(
-		$exports.legacy(pkg, {
+		lib.legacy(pkg, {
 			browser: './hello.js'
 		}),
 		'./hello.js'
 	);
 
 	assert.is(
-		$exports.legacy(pkg, {
+		lib.legacy(pkg, {
 			browser: 'foobar/hello.js'
 		}),
 		'./hello.js'
@@ -192,7 +192,7 @@ browser('should return the full "browser" object :: true', () => {
 		}
 	};
 
-	let output = $exports.legacy(pkg, {
+	let output = lib.legacy(pkg, {
 		browser: true
 	});
 
@@ -208,14 +208,14 @@ browser('still ensures string output is made relative', () => {
 	} as any;
 
 	assert.is(
-		$exports.legacy(pkg, {
+		lib.legacy(pkg, {
 			browser: './foo.js'
 		}),
 		'./bar.js'
 	);
 
 	assert.is(
-		$exports.legacy(pkg, {
+		lib.legacy(pkg, {
 			browser: 'foobar/foo.js'
 		}),
 		'./bar.js'
