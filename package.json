@@ -16,7 +16,8 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "bundt",
+    "build": "bundt -m",
+    "types": "tsc --noEmit",
     "test": "uvu -r tsm test"
   },
   "files": [
@@ -43,6 +44,7 @@
   "devDependencies": {
     "bundt": "next",
     "tsm": "2.3.0",
+    "typescript": "4.9.4",
     "uvu": "0.5.4"
   }
 }
