@@ -17,7 +17,7 @@
   },
   "scripts": {
     "build": "bundt",
-    "test": "uvu -r esm test"
+    "test": "uvu -r tsm test"
   },
   "files": [
     "*.d.ts",
@@ -41,8 +41,8 @@
     "resolve"
   ],
   "devDependencies": {
-    "bundt": "1.1.2",
-    "esm": "3.2.25",
-    "uvu": "0.5.1"
+    "bundt": "next",
+    "tsm": "2.3.0",
+    "uvu": "0.5.4"
   }
 }
