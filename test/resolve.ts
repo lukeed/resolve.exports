@@ -1,18 +1,17 @@
 import { suite } from 'uvu';
 import * as assert from 'uvu/assert';
-import * as $exports from '../src';
+import * as lib from '../src';
 
-import type { Package, Path } from '../src';
-import type { Options } from '../index.d';
+import type { Package, Exports, Options } from 'resolve.exports';
 
-function pass(pkg: Package, expects: Path, entry?: string, options?: Options) {
-	let out = $exports.resolve(pkg, entry, options);
+function pass(pkg: Package, expects: Exports.Entry, entry?: string, options?: Options) {
+	let out = lib.resolve(pkg, entry, options);
 	assert.is(out, expects);
 }
 
-function fail(pkg: Package, target: Path, entry?: string, options?: Options) {
+function fail(pkg: Package, target: Exports.Entry, entry?: string, options?: Options) {
 	try {
-		$exports.resolve(pkg, entry, options);
+		lib.resolve(pkg, entry, options);
 		assert.unreachable();
 	} catch (err) {
 		assert.instance(err, Error);
@@ -25,7 +24,7 @@ function fail(pkg: Package, target: Path, entry?: string, options?: Options) {
 const resolve = suite('$.resolve');
 
 resolve('should be a function', () => {
-	assert.type($exports.resolve, 'function');
+	assert.type(lib.resolve, 'function');
 });
 
 resolve('exports=string', () => {
@@ -794,7 +793,7 @@ conditions('should throw an error if no known conditions', ctx => {
 	delete pkg.exports.default;
 
 	try {
-		$exports.resolve(pkg);
+		lib.resolve(pkg);
 		assert.unreachable();
 	} catch (err) {
 		assert.instance(err, Error);

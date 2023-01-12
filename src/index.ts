@@ -1,48 +1,14 @@
-import type { Options } from '../index.d';
+import type * as t from 'resolve.exports';
 
-type Condition = string;
-
-export type Entry = `#${string}`; // imports
-
-export type Path = `.${string}`;
-export type Subpath = `./${string}`;
-
-export type Imports = {
-	[entry: Entry]: Value | null;
-}
-
-export type Exports = Subpath | {
-	[path: Path]: Value | null;
-	[cond: Condition]: Value | null;
-};
-
-export type Value = {
-	[c: Condition]: Value | null;
-} | Subpath | Value[];
-
-export type Browser = string[] | {
-	[file: Subpath | string]: string | false;
-}
-
-export type Package = {
-	name: string;
-	version?: string;
-	module?: string;
-	main?: string;
-	imports?: Imports;
-	exports?: Exports;
-	browser?: Browser | string;
-	[key: string]: any;
-};
-
-function loop(exports: Exports | Value[] | null, keys: Set<Condition>): Subpath|void {
+function loop(exports: t.Exports.Value, keys: Set<t.Condition>): t.Path | void {
 	if (typeof exports === 'string') {
 		return exports;
 	}
 
 	if (exports) {
-		let idx: number | string, tmp: File|Value|void;
+		let idx: number | string, tmp: t.Path | void;
 		if (Array.isArray(exports)) {
+			// TODO: return all resolved truthys (flatten)
 			for (idx=0; idx < exports.length; idx++) {
 				if (tmp = loop(exports[idx], keys)) return tmp;
 			}
@@ -61,7 +27,7 @@ function loop(exports: Exports | Value[] | null, keys: Set<Condition>): Subpath|
  * @param entry The target entry, eg "."
  * @param condition Unmatched condition?
  */
-function bail(name: string, entry: Path, condition?: number): never {
+function bail(name: string, entry: string, condition?: number): never {
 	throw new Error(
 		condition
 		? `No known conditions for "${entry}" entry in "${name}" package`
@@ -73,23 +39,23 @@ function bail(name: string, entry: Path, condition?: number): never {
  * @param name the package name
  * @param entry the target path/import
  */
-function toName(name: string, entry: string): Path {
+function toName(name: string, entry: string): t.Exports.Entry {
 	return (
 		entry === name ? '.'
 		: entry[0] === '.' ? entry
 		: entry.replace(new RegExp('^' + name + '\/'), './')
-	 ) as Path;
+	 ) as t.Exports.Entry;
 }
 
-export function resolve(pkg: Package, entry = '.', options?: Options) {
+export function resolve(pkg: t.Package, entry?: string, options?: t.Options) {
 	let { name, exports } = pkg;
 
 	if (exports) {
 		let { browser, require, unsafe, conditions=[] } = options || {};
 
-		let target = toName(name, entry);
+		let target = toName(name, entry || '.');
 		if (target !== '.' && !target.startsWith('./')) {
-			target = './' + target as Subpath; // ".ini" => "./.ini"
+			target = './' + target as t.Path; // ".ini" => "./.ini"
 		}
 
 		if (typeof exports === 'string') {
@@ -100,9 +66,9 @@ export function resolve(pkg: Package, entry = '.', options?: Options) {
 		unsafe || allows.add(require ? 'require' : 'import');
 		unsafe || allows.add(browser ? 'browser' : 'node');
 
-		let key: Path | string,
+		let key: t.Exports.Entry | string,
 			m: RegExpExecArray | null,
-			k: Path | undefined,
+			k: t.Exports.Entry | undefined,
 			kv: string | undefined | null,
 			tmp: any, // mixed
 			isSingle = false;
@@ -128,7 +94,7 @@ export function resolve(pkg: Package, entry = '.', options?: Options) {
 					// do not allow "./" to match if already matched "./foo*" key
 				} else if (key[key.length - 1] === '/' && target.startsWith(key)) {
 					kv = target.substring(key.length);
-					k = key as Path;
+					k = key as t.Exports.Entry;
 				} else {
 					tmp = key.indexOf('*', 2);
 					if (!!~tmp) {
@@ -138,7 +104,7 @@ export function resolve(pkg: Package, entry = '.', options?: Options) {
 
 						if (m && m[1]) {
 							kv = m[1];
-							k = key as Path;
+							k = key as t.Exports.Entry;
 						}
 					}
 				}
@@ -159,14 +125,23 @@ export function resolve(pkg: Package, entry = '.', options?: Options) {
 	}
 }
 
+// ---
+// ---
+// ---
+
 type LegacyOptions = {
 	fields?: string[];
 	browser?: string | boolean;
 }
 
-export function legacy(pkg: Package, options: LegacyOptions = {}): Subpath | Browser | void {
+type BrowserObject = {
+	// TODO: is this right? browser object format so loose
+	[file: string]: string | undefined;
+}
+
+export function legacy(pkg: t.Package, options: LegacyOptions = {}): t.Path | t.Browser | void {
 	let i=0,
-		value: Package['module' | 'main' | 'browser'],
+		value: string | t.Browser | undefined,
 		browser = options.browser,
 		fields = options.fields || ['module', 'main'];
 
@@ -180,18 +155,17 @@ export function legacy(pkg: Package, options: LegacyOptions = {}): Subpath | Bro
 				//
 			} else if (typeof value == 'object' && fields[i] == 'browser') {
 				if (typeof browser == 'string') {
-					// TODO: is this right? browser object format so loose
-					value = (value as Record<string, string|undefined>)[
+					value = (value as BrowserObject)[
 						browser = toName(pkg.name, browser)
 					];
-					if (value == null) return browser as Subpath;
+					if (value == null) return browser as t.Path;
 				}
 			} else {
 				continue;
 			}
 
 			return typeof value == 'string'
-				? ('./' + value.replace(/^\.?\//, '')) as Subpath
+				? ('./' + value.replace(/^\.?\//, '')) as t.Path
 				: value;
 		}
 	}
