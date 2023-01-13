@@ -22,23 +22,33 @@ export function toEntry(name: string, ident: string, externals?: boolean): t.Exp
 		: output as string | t.Exports.Entry;
 }
 
-export function loop(exports: t.Exports.Value, keys: Set<t.Condition>): t.Path | void {
-	if (typeof exports === 'string') {
-		return exports;
-	}
+type Output = string[] | string | void;
+export function loop(m: t.Exports.Value, keys: Set<t.Condition>, result?: Set<string>): Output {
+	if (m) {
+		if (typeof m === 'string') {
+			return m;
+		}
 
-	if (exports) {
-		let idx: number | string, tmp: t.Path | void;
-		if (Array.isArray(exports)) {
-			// TODO: return all resolved truthys (flatten)
-			for (idx=0; idx < exports.length; idx++) {
-				if (tmp = loop(exports[idx], keys)) return tmp;
+		let
+			idx: number | string,
+			arr: Set<string>,
+			tmp: Output;
+
+		if (Array.isArray(m)) {
+			arr = result || new Set;
+
+			for (idx=0; idx < m.length; idx++) {
+				tmp = loop(m[idx], keys, arr);
+				if (tmp) arr.add(tmp as string);
 			}
-		} else {
-			for (idx in exports) {
-				if (keys.has(idx)) {
-					return loop(exports[idx], keys);
-				}
+
+			// TODO: send string if len=1?
+			if (!result && arr.size) {
+				return [...arr];
+			}
+		} else for (idx in m) {
+			if (keys.has(idx)) {
+				return loop(m[idx], keys, result);
 			}
 		}
 	}

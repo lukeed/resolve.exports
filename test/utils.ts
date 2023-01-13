@@ -109,17 +109,15 @@ describe('$.loop', it => {
 	});
 
 	it('string', () => {
-		// @ts-expect-error
-		run('', '');
-
+		run('./foo.mjs', './foo.mjs');
 		// @ts-expect-error
 		run('.', '.');
-
-		run('./foo.mjs', './foo.mjs');
 	});
 
 	it('empties', () => {
-		run(undefined, null); // TODO: expect null
+		// @ts-expect-error
+		run(undefined, '');
+		run(undefined, null);
 		run(undefined, []);
 		run(undefined, {});
 	});
@@ -183,50 +181,43 @@ describe('$.loop', it => {
 	});
 
 	it('[ string ]', () => {
-		// TODO: expect array
-		run(DEFAULT, [
-			DEFAULT,
-			FILE
-		]);
+		run(
+			[DEFAULT, FILE],
+			[DEFAULT, FILE]
+		);
 
 		run(undefined, [
 			null,
 		]);
 
-		// TODO: expect truthy array
-		run(DEFAULT, [
-			null,
-			DEFAULT,
-			FILE
-		]);
+		run(
+			[DEFAULT, FILE],
+			[null, DEFAULT, FILE]
+		);
 
-		// TODO: expect truthy array
-		run(DEFAULT, [
-			DEFAULT,
-			null,
-			FILE
-		]);
+		run(
+			[DEFAULT, FILE],
+			[DEFAULT, null, FILE]
+		);
 	});
 
 	it('[{ default }]', () => {
-		// TODO: expect string[]
-		run(DEFAULT, [
+		run([DEFAULT, FILE], [
 			{
 				default: DEFAULT,
 			},
 			FILE
 		]);
 
-		// TODO: expect string[]
-		run(FILE, [
+		run([FILE, DEFAULT], [
 			FILE,
+			null,
 			{
 				default: DEFAULT,
 			},
 		]);
 
-		// TODO: expect string[]
-		run(DEFAULT, [
+		run([DEFAULT, FILE], [
 			{
 				default: {
 					default: {
@@ -238,8 +229,7 @@ describe('$.loop', it => {
 			FILE
 		]);
 
-		// TODO: expect string[]
-		run(DEFAULT, [
+		run([DEFAULT, FILE, './foo.js'], [
 			{
 				default: {
 					default: DEFAULT,
@@ -251,32 +241,40 @@ describe('$.loop', it => {
 					default: DEFAULT,
 				}
 			},
-			null,
+			FILE,
+			{
+				default: './foo.js'
+			}
 		]);
 	});
 
 	it('{ [mixed] }', () => {
-		// TODO: expect string[]
-		run(DEFAULT, {
+		run([DEFAULT, FILE], {
 			default: [DEFAULT, FILE]
 		});
 
-		// TODO: expect string[]
-		run(DEFAULT, {
+		run([DEFAULT, FILE], {
 			default: [null, DEFAULT, FILE]
 		});
 
-		// TODO: expect string[]
-		run(DEFAULT, {
+		run([DEFAULT, FILE], {
 			default: [null, {
 				default: DEFAULT
 			}, FILE]
 		});
 
-		// TODO: expect string[]
-		run(FILE, {
+		run([FILE, DEFAULT], {
 			default: {
 				custom: [{
+					default: [FILE, FILE, null, DEFAULT]
+				}, null, DEFAULT, FILE]
+			}
+		}, ['custom']);
+
+		run([DEFAULT, FILE], {
+			default: {
+				custom: [{
+					custom: [DEFAULT, null],
 					default: [FILE, FILE, null, DEFAULT]
 				}, null, DEFAULT, FILE]
 			}
