@@ -17,7 +17,7 @@ function bail(name: string, entry: string, condition?: number): never {
 
 export function resolve(pkg: t.Package, input?: string, options?: t.Options): string[] | string | void {
 	let entry = input && input !== '.'
-		? $.toEntry(pkg.name, input, true)
+		? $.toEntry(pkg.name, input)
 		: '.';
 
 	if (entry[0] === '#') return imports(pkg, entry as t.Imports.Entry, options);
@@ -31,7 +31,7 @@ export function imports(pkg: t.Package, key: t.Imports.Entry, options?: t.Option
 export function exports(pkg: t.Package, target: t.Exports.Entry, options?: t.Options): t.Exports.Output | void {
 	let
 		name = pkg.name,
-		entry = $.toEntry(name, target, true),
+		entry = $.toEntry(name, target),
 		isROOT = entry === '.',
 		map = pkg.exports;
 
@@ -129,7 +129,7 @@ export function legacy(pkg: t.Package, options: LegacyOptions = {}): t.Path | t.
 		// "module-a" -> "module-a"
 		// "./path/file.js" -> "./path/file.js"
 		// "foobar/path/file.js" -> "./path/file.js"
-		if (isSTRING) browser = $.toEntry(pkg.name, browser as string, false);
+		if (isSTRING) browser = $.toEntry(pkg.name, browser as string, true);
 	}
 
 	for (; i < fields.length; i++) {
