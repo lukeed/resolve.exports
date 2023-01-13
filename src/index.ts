@@ -1,3 +1,5 @@
+import * as $ from './utils';
+
 import type * as t from 'resolve.exports';
 
 function loop(exports: t.Exports.Value, keys: Set<t.Condition>): t.Path | void {
@@ -35,94 +37,97 @@ function bail(name: string, entry: string, condition?: number): never {
 	);
 }
 
-/**
- * @param name the package name
- * @param entry the target path/import
- */
-function toName(name: string, entry: string): t.Exports.Entry {
-	return (
-		entry === name ? '.'
-		: entry[0] === '.' ? entry
-		: entry.replace(new RegExp('^' + name + '\/'), './')
-	 ) as t.Exports.Entry;
+export function resolve(pkg: t.Package, input?: string, options?: t.Options): string[] | string | void {
+	let entry = input && input !== '.'
+		? $.toEntry(pkg.name, input, true)
+		: '.';
+
+	if (entry[0] === '#') return imports(pkg, entry as t.Imports.Entry, options);
+	if (entry[0] === '.') return exports(pkg, entry as t.Exports.Entry, options);
 }
 
-export function resolve(pkg: t.Package, entry?: string, options?: t.Options) {
-	let { name, exports } = pkg;
+export function imports(pkg: t.Package, key: t.Imports.Entry, options?: t.Options): t.Imports.Output | void {
+	//
+}
 
-	if (exports) {
-		let { browser, require, unsafe, conditions=[] } = options || {};
+export function exports(pkg: t.Package, target: t.Exports.Entry, options?: t.Options): t.Exports.Output | void {
+	let
+		name = pkg.name,
+		entry = $.toEntry(name, target),
+		isROOT = entry === '.',
+		map = pkg.exports;
 
-		let target = toName(name, entry || '.');
-		if (target !== '.' && !target.startsWith('./')) {
-			target = './' + target as t.Path; // ".ini" => "./.ini"
-		}
+	// ".ini" => "./.ini"
+	if (!isROOT && !entry.startsWith('./')) {
+		entry = './' + entry as t.Path;
+	}
 
-		if (typeof exports === 'string') {
-			return target === '.' ? exports : bail(name, target);
-		}
+	if (!map) return;
+	if (typeof map === 'string') {
+		return isROOT ? map : bail(name, entry);
+	}
 
-		let allows = new Set(['default', ...conditions]);
-		unsafe || allows.add(require ? 'require' : 'import');
-		unsafe || allows.add(browser ? 'browser' : 'node');
+	let o = options || {},
+		allows = new Set([ 'default', ...o.conditions||[] ]),
+		key: t.Exports.Entry | string,
+		match: RegExpExecArray | null,
+		longest: t.Exports.Entry | undefined,
+		value: string | undefined | null,
+		tmp: any, // mixed
+		isSingle = false;
 
-		let key: t.Exports.Entry | string,
-			m: RegExpExecArray | null,
-			k: t.Exports.Entry | undefined,
-			kv: string | undefined | null,
-			tmp: any, // mixed
-			isSingle = false;
+	o.unsafe || allows.add(o.require ? 'require' : 'import');
+	o.unsafe || allows.add(o.browser ? 'browser' : 'node');
 
-		for (key in exports) {
-			isSingle = key[0] !== '.';
-			break;
-		}
+	for (key in map) {
+		isSingle = key[0] !== '.';
+		break;
+	}
 
-		if (isSingle) {
-			return target === '.'
-				? loop(exports, allows) || bail(name, target, 1)
-				: bail(name, target);
-		}
+	if (isSingle) {
+		return isROOT
+			? loop(map, allows) || bail(name, entry, 1)
+			: bail(name, entry);
+	}
 
-		if (tmp = exports[target]) {
-			return loop(tmp, allows) || bail(name, target, 1);
-		}
+	if (tmp = map[entry]) {
+		return loop(tmp, allows) || bail(name, entry, 1);
+	}
 
-		if (target !== '.') {
-			for (key in exports) {
-				if (k && key.length < k.length) {
-					// do not allow "./" to match if already matched "./foo*" key
-				} else if (key[key.length - 1] === '/' && target.startsWith(key)) {
-					kv = target.substring(key.length);
-					k = key as t.Exports.Entry;
-				} else {
-					tmp = key.indexOf('*', 2);
-					if (!!~tmp) {
-						m = RegExp(
-							'^\.\/' + key.substring(2, tmp) + '(.*)' + key.substring(1+tmp)
-						).exec(target);
+	if (!isROOT) {
+		for (key in map) {
+			if (longest && key.length < longest.length) {
+				// do not allow "./" to match if already matched "./foo*" key
+			} else if (key[key.length - 1] === '/' && entry.startsWith(key)) {
+				value = entry.substring(key.length);
+				longest = key as t.Exports.Entry;
+			} else {
+				tmp = key.indexOf('*', 2);
+				if (!!~tmp) {
+					match = RegExp(
+						'^\.\/' + key.substring(2, tmp) + '(.*)' + key.substring(1+tmp)
+					).exec(entry);
 
-						if (m && m[1]) {
-							kv = m[1];
-							k = key as t.Exports.Entry;
-						}
+					if (match && match[1]) {
+						value = match[1];
+						longest = key as t.Exports.Entry;
 					}
 				}
 			}
-
-			if (k && kv) {
-				// must have value
-				tmp = loop(exports[k], allows);
-				if (!tmp) return bail(name, target);
-
-				return tmp.includes('*')
-					? tmp.replace(/[*]/g, kv)
-					: tmp + kv;
-			}
 		}
 
-		return bail(name, target);
+		if (longest && value) {
+			// must have a value
+			tmp = loop(map[longest], allows);
+			if (!tmp) return bail(name, entry);
+
+			return tmp.includes('*')
+				? tmp.replace(/[*]/g, value)
+				: tmp + value;
+		}
 	}
+
+	return bail(name, entry);
 }
 
 // ---
@@ -143,10 +148,15 @@ export function legacy(pkg: t.Package, options: LegacyOptions = {}): t.Path | t.
 	let i=0,
 		value: string | t.Browser | undefined,
 		browser = options.browser,
-		fields = options.fields || ['module', 'main'];
+		fields = options.fields || ['module', 'main'],
+		isSTRING = typeof browser == 'string';
 
 	if (browser && !fields.includes('browser')) {
 		fields.unshift('browser');
+		// "module-a" -> "module-a"
+		// "./path/file.js" -> "./path/file.js"
+		// "foobar/path/file.js" -> "./path/file.js"
+		if (isSTRING) browser = $.toEntry(pkg.name, browser as string, false);
 	}
 
 	for (; i < fields.length; i++) {
@@ -154,10 +164,8 @@ export function legacy(pkg: t.Package, options: LegacyOptions = {}): t.Path | t.
 			if (typeof value == 'string') {
 				//
 			} else if (typeof value == 'object' && fields[i] == 'browser') {
-				if (typeof browser == 'string') {
-					value = (value as BrowserObject)[
-						browser = toName(pkg.name, browser)
-					];
+				if (isSTRING) {
+					value = (value as BrowserObject)[browser as string];
 					if (value == null) return browser as t.Path;
 				}
 			} else {
