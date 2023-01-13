@@ -3,11 +3,12 @@ import type * as t from 'resolve.exports';
 /**
  * @param name package name
  * @param ident entry identifier
+ * @param externals allow non-path (external) result
  * @see https://esbench.com/bench/59fa3e6799634800a0349382
  */
-export function toEntry(name: string, ident: string, force: true): t.Exports.Entry | t.Imports.Entry;
-export function toEntry(name: string, ident: string, force?: false): t.Exports.Entry | t.Imports.Entry | string;
-export function toEntry(name: string, ident: string, force?: boolean): t.Exports.Entry | t.Imports.Entry | string {
+export function toEntry(name: string, ident: string, externals?: false): t.Exports.Entry | t.Imports.Entry;
+export function toEntry(name: string, ident: string, externals: true): t.Exports.Entry | t.Imports.Entry | string;
+export function toEntry(name: string, ident: string, externals?: boolean): t.Exports.Entry | t.Imports.Entry | string {
 	if (name === ident || ident === '.') return '.';
 
 	let root = name+'/', len = root.length;
@@ -16,7 +17,7 @@ export function toEntry(name: string, ident: string, force?: boolean): t.Exports
 	let output = bool ? ident.slice(len) : ident;
 	if (output[0] === '#') return output as t.Imports.Entry;
 
-	return (bool || force)
+	return (bool || !externals)
 		? (output.slice(0,2) === './' ? output : './' + output) as t.Path
 		: output as string | t.Exports.Entry;
 }
