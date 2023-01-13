@@ -40,24 +40,21 @@ export function exports(pkg: t.Package, target: t.Exports.Entry, options?: t.Opt
 		return isROOT ? map : bail(name, entry);
 	}
 
-	let o = options || {},
-		allows = new Set([ 'default', ...o.conditions||[] ]),
+	let
+		allows = $.conditions(options||{}),
 		key: t.Exports.Entry | string,
 		match: RegExpExecArray | null,
 		longest: t.Exports.Entry | undefined,
 		value: string | undefined | null,
 		tmp: any, // mixed
-		isSingle = false;
-
-	o.unsafe || allows.add(o.require ? 'require' : 'import');
-	o.unsafe || allows.add(o.browser ? 'browser' : 'node');
+		isONE = false;
 
 	for (key in map) {
-		isSingle = key[0] !== '.';
+		isONE = key[0] !== '.';
 		break;
 	}
 
-	if (isSingle) {
+	if (isONE) {
 		return isROOT
 			? $.loop(map, allows) as t.Exports.Output || bail(name, entry, 1)
 			: bail(name, entry);

@@ -1,5 +1,12 @@
 import type * as t from 'resolve.exports';
 
+export function conditions(options: t.Options): Set<t.Condition> {
+	let out = new Set([ 'default', ...options.conditions || [] ]);
+	options.unsafe || out.add(options.require ? 'require' : 'import');
+	options.unsafe || out.add(options.browser ? 'browser' : 'node');
+	return out;
+}
+
 /**
  * @param name package name
  * @param ident entry identifier
