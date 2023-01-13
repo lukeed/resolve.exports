@@ -59,12 +59,12 @@ export function exports(pkg: t.Package, target: t.Exports.Entry, options?: t.Opt
 
 	if (isSingle) {
 		return isROOT
-			? $.loop(map, allows) || bail(name, entry, 1)
+			? $.loop(map, allows) as t.Exports.Output || bail(name, entry, 1)
 			: bail(name, entry);
 	}
 
 	if (tmp = map[entry]) {
-		return $.loop(tmp, allows) || bail(name, entry, 1);
+		return $.loop(tmp, allows) as t.Exports.Output || bail(name, entry, 1);
 	}
 
 	if (!isROOT) {

@@ -5,12 +5,12 @@ export type Options = {
 	unsafe?: boolean;
 }
 
-export function resolve<T=any>(pkg: T, entry: string, options?: Options): string | void;
+export function resolve<T=Package>(pkg: T, entry: string, options?: Options): Imports.Output | Exports.Output | void;
 
-export function legacy<T=any>(pkg: T, options: { browser: true, fields?: readonly string[] }): Browser | void;
-export function legacy<T=any>(pkg: T, options: { browser: string, fields?: readonly string[] }): string | false | void;
-export function legacy<T=any>(pkg: T, options: { browser: false, fields?: readonly string[] }): string | void;
-export function legacy<T=any>(pkg: T, options?: {
+export function legacy<T=Package>(pkg: T, options: { browser: true, fields?: readonly string[] }): Browser | void;
+export function legacy<T=Package>(pkg: T, options: { browser: string, fields?: readonly string[] }): string | false | void;
+export function legacy<T=Package>(pkg: T, options: { browser: false, fields?: readonly string[] }): string | void;
+export function legacy<T=Package>(pkg: T, options?: {
 	browser?: boolean | string;
 	fields?: readonly string[];
 }): Browser | string;

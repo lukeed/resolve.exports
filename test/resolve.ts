@@ -4,9 +4,10 @@ import * as lib from '../src';
 
 import type { Package, Exports, Options } from 'resolve.exports';
 
-function pass(pkg: Package, expects: Exports.Entry, entry?: string, options?: Options) {
+function pass(pkg: Package, expects: Exports.Entry|Exports.Entry[], entry?: string, options?: Options) {
 	let out = lib.resolve(pkg, entry, options);
-	assert.is(out, expects);
+	if (Array.isArray(expects)) assert.equal(out, expects);
+	else assert.is(out, expects);
 }
 
 function fail(pkg: Package, target: Exports.Entry, entry?: string, options?: Options) {
@@ -650,16 +651,17 @@ resolve('should handle mixed path/conditions', () => {
 		}
 	}
 
-	pass(pkg, './$root.import');
-	pass(pkg, './$root.import', 'foobar');
+	pass(pkg, ['./$root.import', './$root.string']);
+	pass(pkg, ['./$root.import', './$root.string'], 'foobar');
 
-	pass(pkg, './$foo.string', 'foo');
-	pass(pkg, './$foo.string', 'foobar/foo');
-	pass(pkg, './$foo.string', './foo');
+	// TODO? if len==1 then single?
+	pass(pkg, ['./$foo.string'], 'foo');
+	pass(pkg, ['./$foo.string'], 'foobar/foo');
+	pass(pkg, ['./$foo.string'], './foo');
 
-	pass(pkg, './$foo.require', 'foo', { require: true });
-	pass(pkg, './$foo.require', 'foobar/foo', { require: true });
-	pass(pkg, './$foo.require', './foo', { require: true });
+	pass(pkg, ['./$foo.require', './$foo.string'], 'foo', { require: true });
+	pass(pkg, ['./$foo.require', './$foo.string'], 'foobar/foo', { require: true });
+	pass(pkg, ['./$foo.require', './$foo.string'], './foo', { require: true });
 });
 
 resolve('should handle file with leading dot', () => {
