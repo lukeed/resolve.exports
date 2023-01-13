@@ -31,14 +31,9 @@ export function imports(pkg: t.Package, key: t.Imports.Entry, options?: t.Option
 export function exports(pkg: t.Package, target: t.Exports.Entry, options?: t.Options): t.Exports.Output | void {
 	let
 		name = pkg.name,
-		entry = $.toEntry(name, target),
+		entry = $.toEntry(name, target, true),
 		isROOT = entry === '.',
 		map = pkg.exports;
-
-	// ".ini" => "./.ini"
-	if (!isROOT && !entry.startsWith('./')) {
-		entry = './' + entry as t.Path;
-	}
 
 	if (!map) return;
 	if (typeof map === 'string') {
