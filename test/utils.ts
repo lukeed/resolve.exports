@@ -2,6 +2,8 @@ import * as uvu from 'uvu';
 import * as assert from 'uvu/assert';
 import * as $ from '../src/utils';
 
+import type * as t from 'resolve.exports';
+
 function describe(
 	name: string,
 	cb: (it: uvu.Test) => void
@@ -11,7 +13,7 @@ function describe(
 	t.run();
 }
 
-describe('utils.toEntry', it => {
+describe('$.toEntry', it => {
 	const PKG = 'PACKAGE';
 	const EXTERNAL = 'EXTERNAL';
 
@@ -89,5 +91,195 @@ describe('utils.toEntry', it => {
 	it('EXTERNAL', () => {
 		run(EXTERNAL, './'+EXTERNAL); // forces path by default
 		run(EXTERNAL, EXTERNAL, true);
+	});
+});
+
+describe('$.loop', it => {
+	const FILE = './file.js';
+	const DEFAULT = './foobar.js';
+
+	type Expect = string | string[] | null | undefined;
+	function run(expect: Expect, map: t.Exports.Value, conditions?: string[]) {
+		let output = $.loop(map, new Set([ 'default', ...conditions||[] ]));
+		assert.equal(output, expect);
+	}
+
+	it('should be a function', () => {
+		assert.type($.loop, 'function');
+	});
+
+	it('string', () => {
+		// @ts-expect-error
+		run('', '');
+
+		// @ts-expect-error
+		run('.', '.');
+
+		run('./foo.mjs', './foo.mjs');
+	});
+
+	it('empties', () => {
+		run(undefined, null); // TODO: expect null
+		run(undefined, []);
+		run(undefined, {});
+	});
+
+	it('{ default }', () => {
+		run(FILE, {
+			default: FILE,
+		});
+
+		run(FILE, {
+			other: './unknown.js',
+			default: FILE,
+		});
+
+		run(undefined, {
+			other: './unknown.js',
+		});
+
+		run(FILE, {
+			foo: './foo.js',
+			default: {
+				bar: './bar.js',
+				default: {
+					baz: './baz.js',
+					default: FILE,
+				}
+			}
+		});
+	});
+
+	it('{ custom }', () => {
+		let conditions = ['custom'];
+
+		run(DEFAULT, {
+			default: DEFAULT,
+			custom: FILE,
+		}, conditions);
+
+		run(FILE, {
+			custom: FILE,
+			default: DEFAULT,
+		}, conditions);
+
+		run(undefined, {
+			foo: './foo.js',
+			bar: './bar.js',
+		}, conditions);
+
+		run(FILE, {
+			foo: './foo.js',
+			custom: {
+				default: {
+					custom: FILE,
+					default: DEFAULT,
+				}
+			},
+			default: {
+				custom: './bar.js'
+			}
+		}, conditions);
+	});
+
+	it('[ string ]', () => {
+		// TODO: expect array
+		run(DEFAULT, [
+			DEFAULT,
+			FILE
+		]);
+
+		run(undefined, [
+			null,
+		]);
+
+		// TODO: expect truthy array
+		run(DEFAULT, [
+			null,
+			DEFAULT,
+			FILE
+		]);
+
+		// TODO: expect truthy array
+		run(DEFAULT, [
+			DEFAULT,
+			null,
+			FILE
+		]);
+	});
+
+	it('[{ default }]', () => {
+		// TODO: expect string[]
+		run(DEFAULT, [
+			{
+				default: DEFAULT,
+			},
+			FILE
+		]);
+
+		// TODO: expect string[]
+		run(FILE, [
+			FILE,
+			{
+				default: DEFAULT,
+			},
+		]);
+
+		// TODO: expect string[]
+		run(DEFAULT, [
+			{
+				default: {
+					default: {
+						default: DEFAULT,
+					}
+				}
+			},
+			null,
+			FILE
+		]);
+
+		// TODO: expect string[]
+		run(DEFAULT, [
+			{
+				default: {
+					default: DEFAULT,
+				}
+			},
+			null,
+			{
+				default: {
+					default: DEFAULT,
+				}
+			},
+			null,
+		]);
+	});
+
+	it('{ [mixed] }', () => {
+		// TODO: expect string[]
+		run(DEFAULT, {
+			default: [DEFAULT, FILE]
+		});
+
+		// TODO: expect string[]
+		run(DEFAULT, {
+			default: [null, DEFAULT, FILE]
+		});
+
+		// TODO: expect string[]
+		run(DEFAULT, {
+			default: [null, {
+				default: DEFAULT
+			}, FILE]
+		});
+
+		// TODO: expect string[]
+		run(FILE, {
+			default: {
+				custom: [{
+					default: [FILE, FILE, null, DEFAULT]
+				}, null, DEFAULT, FILE]
+			}
+		}, ['custom']);
 	});
 });
