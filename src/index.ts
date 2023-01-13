@@ -2,28 +2,6 @@ import * as $ from './utils';
 
 import type * as t from 'resolve.exports';
 
-function loop(exports: t.Exports.Value, keys: Set<t.Condition>): t.Path | void {
-	if (typeof exports === 'string') {
-		return exports;
-	}
-
-	if (exports) {
-		let idx: number | string, tmp: t.Path | void;
-		if (Array.isArray(exports)) {
-			// TODO: return all resolved truthys (flatten)
-			for (idx=0; idx < exports.length; idx++) {
-				if (tmp = loop(exports[idx], keys)) return tmp;
-			}
-		} else {
-			for (idx in exports) {
-				if (keys.has(idx)) {
-					return loop(exports[idx], keys);
-				}
-			}
-		}
-	}
-}
-
 /**
  * @param name The package name
  * @param entry The target entry, eg "."
@@ -86,12 +64,12 @@ export function exports(pkg: t.Package, target: t.Exports.Entry, options?: t.Opt
 
 	if (isSingle) {
 		return isROOT
-			? loop(map, allows) || bail(name, entry, 1)
+			? $.loop(map, allows) || bail(name, entry, 1)
 			: bail(name, entry);
 	}
 
 	if (tmp = map[entry]) {
-		return loop(tmp, allows) || bail(name, entry, 1);
+		return $.loop(tmp, allows) || bail(name, entry, 1);
 	}
 
 	if (!isROOT) {
@@ -118,7 +96,7 @@ export function exports(pkg: t.Package, target: t.Exports.Entry, options?: t.Opt
 
 		if (longest && value) {
 			// must have a value
-			tmp = loop(map[longest], allows);
+			tmp = $.loop(map[longest], allows);
 			if (!tmp) return bail(name, entry);
 
 			return tmp.includes('*')
@@ -166,7 +144,7 @@ export function legacy(pkg: t.Package, options: LegacyOptions = {}): t.Path | t.
 			} else if (typeof value == 'object' && fields[i] == 'browser') {
 				if (isSTRING) {
 					value = (value as BrowserObject)[browser as string];
-					if (value == null) return browser as t.Path;
+					if (value == null) return browser as string;
 				}
 			} else {
 				continue;

@@ -20,3 +20,25 @@ export function toEntry(name: string, ident: string, force?: boolean): t.Exports
 		? (output.slice(0,2) === './' ? output : './' + output) as t.Path
 		: output as string | t.Exports.Entry;
 }
+
+export function loop(exports: t.Exports.Value, keys: Set<t.Condition>): t.Path | void {
+	if (typeof exports === 'string') {
+		return exports;
+	}
+
+	if (exports) {
+		let idx: number | string, tmp: t.Path | void;
+		if (Array.isArray(exports)) {
+			// TODO: return all resolved truthys (flatten)
+			for (idx=0; idx < exports.length; idx++) {
+				if (tmp = loop(exports[idx], keys)) return tmp;
+			}
+		} else {
+			for (idx in exports) {
+				if (keys.has(idx)) {
+					return loop(exports[idx], keys);
+				}
+			}
+		}
+	}
+}
