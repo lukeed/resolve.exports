@@ -13,6 +13,104 @@ function describe(
 	t.run();
 }
 
+describe('$.conditions', it => {
+	const EMPTY = {};
+
+	function run(o?: t.Options): string[] {
+		return [...$.conditions(o||{})];
+	}
+
+	it('should be a function', () => {
+		assert.type($.conditions, 'function');
+	});
+
+	it('should return `Set` instance', () => {
+		let output = $.conditions(EMPTY);
+		assert.instance(output, Set);
+	});
+
+	it('default conditions', () => {
+		assert.equal(
+			[ ...$.conditions(EMPTY) ],
+			['default', 'import', 'node']
+		);
+	});
+
+	it('default conditions :: unsafe', () => {
+		assert.equal(
+			run({ unsafe: true }),
+			['default']
+		);
+	});
+
+	it('option.browser', () => {
+		assert.equal(
+			run({ browser: true }),
+			['default', 'import', 'browser']
+		);
+	});
+
+	// unsafe ignores all but conditions
+	it('option.browser :: unsafe', () => {
+		let output = run({
+			browser: true,
+			unsafe: true,
+		});
+		assert.equal(output, ['default']);
+	});
+
+	it('option.require', () => {
+		assert.equal(
+			run({ require: true }),
+			['default', 'require', 'node']
+		);
+	});
+
+	// unsafe ignores all but conditions
+	it('option.require :: unsafe', () => {
+		let output = run({
+			require: true,
+			unsafe: true,
+		});
+		assert.equal(output, ['default']);
+	});
+
+	it('option.conditions', () => {
+		let output = run({ conditions: ['foo', 'bar'] });
+		assert.equal(output, ['default', 'foo', 'bar', 'import', 'node']);
+	});
+
+	it('option.conditions :: order', () => {
+		let output = run({ conditions: ['node', 'import', 'foobar'] });
+		assert.equal(output, ['default', 'node', 'import', 'foobar']);
+	});
+
+	it('option.conditions :: unsafe', () => {
+		let output = run({ unsafe: true, conditions: ['foo', 'bar'] });
+		assert.equal(output, ['default', 'foo', 'bar']);
+	});
+
+	it('option.conditions :: browser', () => {
+		let output = run({ browser: true, conditions: ['foo', 'bar'] });
+		assert.equal(output, ['default', 'foo', 'bar', 'import', 'browser']);
+	});
+
+	it('option.conditions :: browser :: order', () => {
+		let output = run({ browser: true, conditions: ['browser', 'foobar'] });
+		assert.equal(output, ['default', 'browser', 'foobar', 'import']);
+	});
+
+	it('option.conditions :: require', () => {
+		let output = run({ require: true, conditions: ['foo', 'bar'] });
+		assert.equal(output, ['default', 'foo', 'bar', 'require', 'node']);
+	});
+
+	it('option.conditions :: require :: order', () => {
+		let output = run({ require: true, conditions: ['require', 'foobar'] });
+		assert.equal(output, ['default', 'require', 'foobar', 'node']);
+	});
+});
+
 describe('$.toEntry', it => {
 	const PKG = 'PACKAGE';
 	const EXTERNAL = 'EXTERNAL';
