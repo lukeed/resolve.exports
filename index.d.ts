@@ -27,11 +27,8 @@ export type Options = {
 }
 
 export function resolve<T=Package>(pkg: T, entry?: string, options?: Options): Imports.Output | Exports.Output | void;
-
-type WithName<T extends string> = `${string}/${T}`;
-
-export function imports<T=Package>(pkg: T, entry: Imports.Entry|WithName<Imports.Entry>, options?: Options): Imports.Output | void;
-export function exports<T=Package>(pkg: T, target: Exports.Entry|WithName<Exports.Entry>, options?: Options): Exports.Output | void;
+export function imports<T=Package>(pkg: T, entry?: string, options?: Options): Imports.Output | void;
+export function exports<T=Package>(pkg: T, target: string, options?: Options): Exports.Output | void;
 
 export function legacy<T=Package>(pkg: T, options: { browser: true, fields?: readonly string[] }): Browser | void;
 export function legacy<T=Package>(pkg: T, options: { browser: string, fields?: readonly string[] }): string | false | void;
