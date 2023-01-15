@@ -66,7 +66,7 @@ export function walk(name: string, mapping: Mapping, input: string, options?: t.
 	}
 
 	let v = loop(m, c);
-	// if (!v) throws('unknown condition');
+	// unknown condition(s)
 	if (!v) throws(name, entry, 1);
 
 	return (exact || !replace) ? v : injects(v, replace);
