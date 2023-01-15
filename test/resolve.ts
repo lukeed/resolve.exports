@@ -40,6 +40,474 @@ describe('$.resolve', it => {
 		assert.type(lib.resolve, 'function');
 	});
 
+	it('should return nothing if no maps', () => {
+		let output = lib.resolve({
+			"name": "foobar"
+		});
+		assert.is(output, undefined);
+	});
+
+	it('should default to `$.exports` handler', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"exports": "./hello.mjs"
+		};
+
+		let output = lib.resolve(pkg);
+		assert.is(output, './hello.mjs');
+
+		try {
+			lib.resolve(pkg, './other');
+			assert.unreachable();
+		} catch (err) {
+			assert.instance(err, Error);
+			assert.is((err as Error).message, `Missing "./other" export in "foobar" package`);
+		}
+	});
+
+	it('should run `$.imports` if given #ident', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#foo": "./foo.mjs"
+			}
+		};
+
+		let output = lib.resolve(pkg, '#foo');
+		assert.is(output, './foo.mjs');
+
+		output = lib.resolve(pkg, 'foobar/#foo');
+		assert.is(output, './foo.mjs');
+
+		try {
+			lib.resolve(pkg, '#bar');
+			assert.unreachable();
+		} catch (err) {
+			assert.instance(err, Error);
+			assert.is((err as Error).message, `Missing "#bar" export in "foobar" package`);
+		}
+	});
+});
+
+describe('$.imports', it => {
+	it('should be a function', () => {
+		assert.type(lib.imports, 'function');
+	});
+
+	it('should return nothing if no "imports" map', () => {
+		let pkg: Package = {
+			"name": "foobar"
+		};
+
+		let output = lib.imports(pkg, '#any');
+		assert.is(output, undefined);
+	});
+
+	it('imports["#foo"] = string', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#foo": "./$import",
+				"#bar": "module-a",
+			}
+		};
+
+		pass(pkg, './$import', '#foo');
+		pass(pkg, './$import', 'foobar/#foo');
+
+		pass(pkg, 'module-a', '#bar');
+		pass(pkg, 'module-a', 'foobar/#bar');
+
+		fail(pkg, '#other', 'foobar/#other');
+	});
+
+	it('imports["#foo"] = object', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#foo": {
+					"import": "./$import",
+					"require": "./$require",
+				}
+			}
+		};
+
+		pass(pkg, './$import', '#foo');
+		pass(pkg, './$import', 'foobar/#foo');
+
+		fail(pkg, '#other', 'foobar/#other');
+	});
+
+	it('nested conditions :: subpath', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#lite": {
+					"node": {
+						"import": "./$node.import",
+						"require": "./$node.require"
+					},
+					"browser": {
+						"import": "./$browser.import",
+						"require": "./$browser.require"
+					},
+				}
+			}
+		};
+
+		pass(pkg, './$node.import', 'foobar/#lite');
+		pass(pkg, './$node.require', 'foobar/#lite', { require: true });
+
+		pass(pkg, './$browser.import', 'foobar/#lite', { browser: true });
+		pass(pkg, './$browser.require', 'foobar/#lite', { browser: true, require: true });
+	});
+
+	it('nested conditions :: subpath :: inverse', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#lite": {
+					"import": {
+						"browser": "./$browser.import",
+						"node": "./$node.import",
+					},
+					"require": {
+						"browser": "./$browser.require",
+						"node": "./$node.require",
+					}
+				}
+			}
+		};
+
+		pass(pkg, './$node.import', 'foobar/#lite');
+		pass(pkg, './$node.require', 'foobar/#lite', { require: true });
+
+		pass(pkg, './$browser.import', 'foobar/#lite', { browser: true });
+		pass(pkg, './$browser.require', 'foobar/#lite', { browser: true, require: true });
+	});
+
+	// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
+	it('imports["#key/*"]', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#key/*": "./cheese/*.mjs"
+			}
+		};
+
+		pass(pkg, './cheese/hello.mjs', 'foobar/#key/hello');
+		pass(pkg, './cheese/hello/world.mjs', '#key/hello/world');
+
+		// evaluate as defined, not wrong
+		pass(pkg, './cheese/hello.js.mjs', '#key/hello.js');
+		pass(pkg, './cheese/hello.js.mjs', 'foobar/#key/hello.js');
+		pass(pkg, './cheese/hello/world.js.mjs', '#key/hello/world.js');
+	});
+
+	it('imports["#key/dir*"]', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#key/dir*": "./cheese/*.mjs"
+			}
+		};
+
+		pass(pkg, './cheese/test.mjs', '#key/dirtest');
+		pass(pkg, './cheese/test.mjs', 'foobar/#key/dirtest');
+
+		pass(pkg, './cheese/test/wheel.mjs', '#key/dirtest/wheel');
+		pass(pkg, './cheese/test/wheel.mjs', 'foobar/#key/dirtest/wheel');
+	});
+
+	// https://github.com/lukeed/resolve.exports/issues/9
+	it('imports["#key/dir*"] :: repeat "*" value', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#key/dir*": "./*sub/dir*/file.js"
+			}
+		};
+
+		pass(pkg, './testsub/dirtest/file.js', '#key/dirtest');
+		pass(pkg, './testsub/dirtest/file.js', 'foobar/#key/dirtest');
+
+		pass(pkg, './test/innersub/dirtest/inner/file.js', '#key/dirtest/inner');
+		pass(pkg, './test/innersub/dirtest/inner/file.js', 'foobar/#key/dirtest/inner');
+	});
+
+	/**
+	 * @deprecated Documentation-only deprecation in Node 14.13
+	 * @deprecated Runtime deprecation in Node 16.0
+	 * @removed Removed in Node 18.0
+	 * @see https://nodejs.org/docs/latest-v16.x/api/packages.html#subpath-folder-mappings
+	 */
+	it('imports["#features/"]', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#features/": "./features/"
+			}
+		};
+
+		pass(pkg, './features/', '#features/');
+		pass(pkg, './features/', 'foobar/#features/');
+
+		pass(pkg, './features/hello.js', 'foobar/#features/hello.js');
+
+		fail(pkg, '#features', '#features');
+		fail(pkg, '#features', 'foobar/#features');
+	});
+
+	it('imports["#features/"] :: conditions', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#features/": {
+					"browser": {
+						"import": "./browser.import/",
+						"require": "./browser.require/",
+					},
+					"import": "./import/",
+					"require": "./require/",
+				},
+			}
+		};
+
+		// import
+		pass(pkg, './import/', '#features/');
+		pass(pkg, './import/', 'foobar/#features/');
+
+		pass(pkg, './import/hello.js', '#features/hello.js');
+		pass(pkg, './import/hello.js', 'foobar/#features/hello.js');
+
+		// require
+		pass(pkg, './require/', '#features/', { require: true });
+		pass(pkg, './require/', 'foobar/#features/', { require: true });
+
+		pass(pkg, './require/hello.js', '#features/hello.js', { require: true });
+		pass(pkg, './require/hello.js', 'foobar/#features/hello.js', { require: true });
+
+		// require + browser
+		pass(pkg, './browser.require/', '#features/', { browser: true, require: true });
+		pass(pkg, './browser.require/', 'foobar/#features/', { browser: true, require: true });
+
+		pass(pkg, './browser.require/hello.js', '#features/hello.js', { browser: true, require: true });
+		pass(pkg, './browser.require/hello.js', 'foobar/#features/hello.js', { browser: true, require: true });
+	});
+
+	// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
+	it('imports["#features/*"]', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#features/*": "./features/*.js",
+			}
+		};
+
+		fail(pkg, '#features', '#features');
+		fail(pkg, '#features', 'foobar/#features');
+
+		fail(pkg, '#features/', '#features/');
+		fail(pkg, '#features/', 'foobar/#features/');
+
+		pass(pkg, './features/a.js', 'foobar/#features/a');
+		pass(pkg, './features/ab.js', 'foobar/#features/ab');
+		pass(pkg, './features/abc.js', 'foobar/#features/abc');
+
+		pass(pkg, './features/hello.js', 'foobar/#features/hello');
+		pass(pkg, './features/foo/bar.js', 'foobar/#features/foo/bar');
+
+		// Valid: Pattern trailers allow any exact substrings to be matched
+		pass(pkg, './features/hello.js.js', 'foobar/#features/hello.js');
+		pass(pkg, './features/foo/bar.js.js', 'foobar/#features/foo/bar.js');
+	});
+
+	// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
+	it('exports["#fooba*"] :: with "#foo*" key', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#fooba*": "./features/*.js",
+				"#foo*": "./"
+			}
+		};
+
+		pass(pkg, './features/r.js', '#foobar');
+		pass(pkg, './features/r.js', 'foobar/#foobar');
+
+		pass(pkg, './features/r/hello.js', 'foobar/#foobar/hello');
+		pass(pkg, './features/r/foo/bar.js', 'foobar/#foobar/foo/bar');
+
+		// Valid: Pattern trailers allow any exact substrings to be matched
+		pass(pkg, './features/r/hello.js.js', 'foobar/#foobar/hello.js');
+		pass(pkg, './features/r/foo/bar.js.js', 'foobar/#foobar/foo/bar.js');
+	});
+
+	// https://github.com/lukeed/resolve.exports/issues/7
+	it('imports["#fooba*"] :: with "#foo*" key first', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#foo*": "./",
+				"#fooba*": "./features/*.js"
+			}
+		};
+
+		pass(pkg, './features/r.js', '#foobar');
+		pass(pkg, './features/r.js', 'foobar/#foobar');
+
+		pass(pkg, './features/r/hello.js', 'foobar/#foobar/hello');
+		pass(pkg, './features/r/foo/bar.js', 'foobar/#foobar/foo/bar');
+
+		// Valid: Pattern trailers allow any exact substrings to be matched
+		pass(pkg, './features/r/hello.js.js', 'foobar/#foobar/hello.js');
+		pass(pkg, './features/r/foo/bar.js.js', 'foobar/#foobar/foo/bar.js');
+	});
+
+	// https://github.com/lukeed/resolve.exports/issues/16
+	it('imports["#features/*"] :: with `null` internals', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#features/*": "./src/features/*.js",
+				"#features/internal/*": null
+			}
+		};
+
+		pass(pkg, './src/features/hello.js', '#features/hello');
+		pass(pkg, './src/features/hello.js', 'foobar/#features/hello');
+
+		pass(pkg, './src/features/foo/bar.js', '#features/foo/bar');
+		pass(pkg, './src/features/foo/bar.js', 'foobar/#features/foo/bar');
+
+		// TODO? Native throws `ERR_PACKAGE_PATH_NOT_EXPORTED`
+		// Currently throwing `Missing "%s" export in "$s" package`
+		fail(pkg, '#features/internal/hello', '#features/internal/hello');
+		fail(pkg, '#features/internal/foo/bar', '#features/internal/foo/bar');
+	});
+
+	// https://github.com/lukeed/resolve.exports/issues/16
+	it('imports["#features/*"] :: with `null` internals first', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#features/internal/*": null,
+				"#features/*": "./src/features/*.js",
+			}
+		};
+
+		pass(pkg, './src/features/hello.js', '#features/hello');
+		pass(pkg, './src/features/hello.js', 'foobar/#features/hello');
+
+		pass(pkg, './src/features/foo/bar.js', '#features/foo/bar');
+		pass(pkg, './src/features/foo/bar.js', 'foobar/#features/foo/bar');
+
+		// TODO? Native throws `ERR_PACKAGE_PATH_NOT_EXPORTED`
+		// Currently throwing `Missing "%s" export in "$s" package`
+		fail(pkg, '#features/internal/hello', '#features/internal/hello');
+		fail(pkg, '#features/internal/foo/bar', '#features/internal/foo/bar');
+	});
+
+	// https://nodejs.org/docs/latest-v18.x/api/packages.html#package-entry-points
+	it('imports["#features/*"] :: with "#features/*.js" key', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#features/*": "./features/*.js",
+				"#features/*.js": "./features/*.js",
+			}
+		};
+
+		fail(pkg, '#features', '#features');
+		fail(pkg, '#features', 'foobar/#features');
+
+		fail(pkg, '#features/', '#features/');
+		fail(pkg, '#features/', 'foobar/#features/');
+
+		pass(pkg, './features/a.js', 'foobar/#features/a');
+		pass(pkg, './features/ab.js', 'foobar/#features/ab');
+		pass(pkg, './features/abc.js', 'foobar/#features/abc');
+
+		pass(pkg, './features/hello.js', 'foobar/#features/hello');
+		pass(pkg, './features/hello.js', 'foobar/#features/hello.js');
+
+		pass(pkg, './features/foo/bar.js', 'foobar/#features/foo/bar');
+		pass(pkg, './features/foo/bar.js', 'foobar/#features/foo/bar.js');
+	});
+
+	it('imports["#features/*"] :: conditions', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#features/*": {
+					"browser": {
+						"import": "./browser.import/*.mjs",
+						"require": "./browser.require/*.js",
+					},
+					"import": "./import/*.mjs",
+					"require": "./require/*.js",
+				},
+			}
+		};
+
+		// import
+		fail(pkg, '#features/', '#features/'); // no file
+		fail(pkg, '#features/', 'foobar/#features/'); // no file
+
+		pass(pkg, './import/hello.mjs', '#features/hello');
+		pass(pkg, './import/hello.mjs', 'foobar/#features/hello');
+
+		// require
+		fail(pkg, '#features/', '#features/', { require: true }); // no file
+		fail(pkg, '#features/', 'foobar/#features/', { require: true }); // no file
+
+		pass(pkg, './require/hello.js', '#features/hello', { require: true });
+		pass(pkg, './require/hello.js', 'foobar/#features/hello', { require: true });
+
+		// require + browser
+		fail(pkg, '#features/', '#features/', { browser: true, require: true }); // no file
+		fail(pkg, '#features/', 'foobar/#features/', { browser: true, require: true }); // no file
+
+		pass(pkg, './browser.require/hello.js', '#features/hello', { browser: true, require: true });
+		pass(pkg, './browser.require/hello.js', 'foobar/#features/hello', { browser: true, require: true });
+	});
+
+	it('should handle mixed path/conditions', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#foo": [
+					{
+						"require": "./$foo.require"
+					},
+					"./$foo.string"
+				]
+			}
+		};
+
+		// TODO? if len==1 then single?
+		pass(pkg, ['./$foo.string'], '#foo');
+		pass(pkg, ['./$foo.string'], 'foobar/#foo');
+
+		pass(pkg, ['./$foo.require', './$foo.string'], '#foo', { require: true });
+		pass(pkg, ['./$foo.require', './$foo.string'], 'foobar/#foo', { require: true });
+	});
+});
+
+describe('$.exports', it => {
+	it('should be a function', () => {
+		assert.type(lib.exports, 'function');
+	});
+
+	it('should return nothing if no "exports" map', () => {
+		let pkg: Package = {
+			"name": "foobar"
+		};
+
+		let output = lib.exports(pkg, '#any');
+		assert.is(output, undefined);
+	});
+
 	it('exports=string', () => {
 		let pkg: Package = {
 			"name": "foobar",
@@ -909,399 +1377,3 @@ describe('options.unsafe', it => {
 		});
 	});
 });
-
-describe('$.imports', it => {
-	it('should be a function', () => {
-		assert.type(lib.imports, 'function');
-	});
-
-	it('imports["#foo"] = string', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#foo": "./$import",
-				"#bar": "module-a",
-			}
-		};
-
-		pass(pkg, './$import', '#foo');
-		pass(pkg, './$import', 'foobar/#foo');
-
-		pass(pkg, 'module-a', '#bar');
-		pass(pkg, 'module-a', 'foobar/#bar');
-
-		fail(pkg, '#other', 'foobar/#other');
-	});
-
-	it('imports["#foo"] = object', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#foo": {
-					"import": "./$import",
-					"require": "./$require",
-				}
-			}
-		};
-
-		pass(pkg, './$import', '#foo');
-		pass(pkg, './$import', 'foobar/#foo');
-
-		fail(pkg, '#other', 'foobar/#other');
-	});
-
-	it('nested conditions :: subpath', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#lite": {
-					"node": {
-						"import": "./$node.import",
-						"require": "./$node.require"
-					},
-					"browser": {
-						"import": "./$browser.import",
-						"require": "./$browser.require"
-					},
-				}
-			}
-		};
-
-		pass(pkg, './$node.import', 'foobar/#lite');
-		pass(pkg, './$node.require', 'foobar/#lite', { require: true });
-
-		pass(pkg, './$browser.import', 'foobar/#lite', { browser: true });
-		pass(pkg, './$browser.require', 'foobar/#lite', { browser: true, require: true });
-	});
-
-	it('nested conditions :: subpath :: inverse', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#lite": {
-					"import": {
-						"browser": "./$browser.import",
-						"node": "./$node.import",
-					},
-					"require": {
-						"browser": "./$browser.require",
-						"node": "./$node.require",
-					}
-				}
-			}
-		};
-
-		pass(pkg, './$node.import', 'foobar/#lite');
-		pass(pkg, './$node.require', 'foobar/#lite', { require: true });
-
-		pass(pkg, './$browser.import', 'foobar/#lite', { browser: true });
-		pass(pkg, './$browser.require', 'foobar/#lite', { browser: true, require: true });
-	});
-
-	// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
-	it('imports["#key/*"]', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#key/*": "./cheese/*.mjs"
-			}
-		};
-
-		pass(pkg, './cheese/hello.mjs', 'foobar/#key/hello');
-		pass(pkg, './cheese/hello/world.mjs', '#key/hello/world');
-
-		// evaluate as defined, not wrong
-		pass(pkg, './cheese/hello.js.mjs', '#key/hello.js');
-		pass(pkg, './cheese/hello.js.mjs', 'foobar/#key/hello.js');
-		pass(pkg, './cheese/hello/world.js.mjs', '#key/hello/world.js');
-	});
-
-	it('imports["#key/dir*"]', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#key/dir*": "./cheese/*.mjs"
-			}
-		};
-
-		pass(pkg, './cheese/test.mjs', '#key/dirtest');
-		pass(pkg, './cheese/test.mjs', 'foobar/#key/dirtest');
-
-		pass(pkg, './cheese/test/wheel.mjs', '#key/dirtest/wheel');
-		pass(pkg, './cheese/test/wheel.mjs', 'foobar/#key/dirtest/wheel');
-	});
-
-	// https://github.com/lukeed/resolve.exports/issues/9
-	it('imports["#key/dir*"] :: repeat "*" value', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#key/dir*": "./*sub/dir*/file.js"
-			}
-		};
-
-		pass(pkg, './testsub/dirtest/file.js', '#key/dirtest');
-		pass(pkg, './testsub/dirtest/file.js', 'foobar/#key/dirtest');
-
-		pass(pkg, './test/innersub/dirtest/inner/file.js', '#key/dirtest/inner');
-		pass(pkg, './test/innersub/dirtest/inner/file.js', 'foobar/#key/dirtest/inner');
-	});
-
-	/**
-	 * @deprecated Documentation-only deprecation in Node 14.13
-	 * @deprecated Runtime deprecation in Node 16.0
-	 * @removed Removed in Node 18.0
-	 * @see https://nodejs.org/docs/latest-v16.x/api/packages.html#subpath-folder-mappings
-	 */
-	it('imports["#features/"]', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#features/": "./features/"
-			}
-		};
-
-		pass(pkg, './features/', '#features/');
-		pass(pkg, './features/', 'foobar/#features/');
-
-		pass(pkg, './features/hello.js', 'foobar/#features/hello.js');
-
-		fail(pkg, '#features', '#features');
-		fail(pkg, '#features', 'foobar/#features');
-	});
-
-	it('imports["#features/"] :: conditions', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#features/": {
-					"browser": {
-						"import": "./browser.import/",
-						"require": "./browser.require/",
-					},
-					"import": "./import/",
-					"require": "./require/",
-				},
-			}
-		};
-
-		// import
-		pass(pkg, './import/', '#features/');
-		pass(pkg, './import/', 'foobar/#features/');
-
-		pass(pkg, './import/hello.js', '#features/hello.js');
-		pass(pkg, './import/hello.js', 'foobar/#features/hello.js');
-
-		// require
-		pass(pkg, './require/', '#features/', { require: true });
-		pass(pkg, './require/', 'foobar/#features/', { require: true });
-
-		pass(pkg, './require/hello.js', '#features/hello.js', { require: true });
-		pass(pkg, './require/hello.js', 'foobar/#features/hello.js', { require: true });
-
-		// require + browser
-		pass(pkg, './browser.require/', '#features/', { browser: true, require: true });
-		pass(pkg, './browser.require/', 'foobar/#features/', { browser: true, require: true });
-
-		pass(pkg, './browser.require/hello.js', '#features/hello.js', { browser: true, require: true });
-		pass(pkg, './browser.require/hello.js', 'foobar/#features/hello.js', { browser: true, require: true });
-	});
-
-	// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
-	it('imports["#features/*"]', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#features/*": "./features/*.js",
-			}
-		};
-
-		fail(pkg, '#features', '#features');
-		fail(pkg, '#features', 'foobar/#features');
-
-		fail(pkg, '#features/', '#features/');
-		fail(pkg, '#features/', 'foobar/#features/');
-
-		pass(pkg, './features/a.js', 'foobar/#features/a');
-		pass(pkg, './features/ab.js', 'foobar/#features/ab');
-		pass(pkg, './features/abc.js', 'foobar/#features/abc');
-
-		pass(pkg, './features/hello.js', 'foobar/#features/hello');
-		pass(pkg, './features/foo/bar.js', 'foobar/#features/foo/bar');
-
-		// Valid: Pattern trailers allow any exact substrings to be matched
-		pass(pkg, './features/hello.js.js', 'foobar/#features/hello.js');
-		pass(pkg, './features/foo/bar.js.js', 'foobar/#features/foo/bar.js');
-	});
-
-	// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
-	it('exports["#fooba*"] :: with "#foo*" key', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#fooba*": "./features/*.js",
-				"#foo*": "./"
-			}
-		};
-
-		pass(pkg, './features/r.js', '#foobar');
-		pass(pkg, './features/r.js', 'foobar/#foobar');
-
-		pass(pkg, './features/r/hello.js', 'foobar/#foobar/hello');
-		pass(pkg, './features/r/foo/bar.js', 'foobar/#foobar/foo/bar');
-
-		// Valid: Pattern trailers allow any exact substrings to be matched
-		pass(pkg, './features/r/hello.js.js', 'foobar/#foobar/hello.js');
-		pass(pkg, './features/r/foo/bar.js.js', 'foobar/#foobar/foo/bar.js');
-	});
-
-	// https://github.com/lukeed/resolve.exports/issues/7
-	it('imports["#fooba*"] :: with "#foo*" key first', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#foo*": "./",
-				"#fooba*": "./features/*.js"
-			}
-		};
-
-		pass(pkg, './features/r.js', '#foobar');
-		pass(pkg, './features/r.js', 'foobar/#foobar');
-
-		pass(pkg, './features/r/hello.js', 'foobar/#foobar/hello');
-		pass(pkg, './features/r/foo/bar.js', 'foobar/#foobar/foo/bar');
-
-		// Valid: Pattern trailers allow any exact substrings to be matched
-		pass(pkg, './features/r/hello.js.js', 'foobar/#foobar/hello.js');
-		pass(pkg, './features/r/foo/bar.js.js', 'foobar/#foobar/foo/bar.js');
-	});
-
-	// https://github.com/lukeed/resolve.exports/issues/16
-	it('imports["#features/*"] :: with `null` internals', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#features/*": "./src/features/*.js",
-				"#features/internal/*": null
-			}
-		};
-
-		pass(pkg, './src/features/hello.js', '#features/hello');
-		pass(pkg, './src/features/hello.js', 'foobar/#features/hello');
-
-		pass(pkg, './src/features/foo/bar.js', '#features/foo/bar');
-		pass(pkg, './src/features/foo/bar.js', 'foobar/#features/foo/bar');
-
-		// TODO? Native throws `ERR_PACKAGE_PATH_NOT_EXPORTED`
-		// Currently throwing `Missing "%s" export in "$s" package`
-		fail(pkg, '#features/internal/hello', '#features/internal/hello');
-		fail(pkg, '#features/internal/foo/bar', '#features/internal/foo/bar');
-	});
-
-	// https://github.com/lukeed/resolve.exports/issues/16
-	it('imports["#features/*"] :: with `null` internals first', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#features/internal/*": null,
-				"#features/*": "./src/features/*.js",
-			}
-		};
-
-		pass(pkg, './src/features/hello.js', '#features/hello');
-		pass(pkg, './src/features/hello.js', 'foobar/#features/hello');
-
-		pass(pkg, './src/features/foo/bar.js', '#features/foo/bar');
-		pass(pkg, './src/features/foo/bar.js', 'foobar/#features/foo/bar');
-
-		// TODO? Native throws `ERR_PACKAGE_PATH_NOT_EXPORTED`
-		// Currently throwing `Missing "%s" export in "$s" package`
-		fail(pkg, '#features/internal/hello', '#features/internal/hello');
-		fail(pkg, '#features/internal/foo/bar', '#features/internal/foo/bar');
-	});
-
-	// https://nodejs.org/docs/latest-v18.x/api/packages.html#package-entry-points
-	it('imports["#features/*"] :: with "#features/*.js" key', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#features/*": "./features/*.js",
-				"#features/*.js": "./features/*.js",
-			}
-		};
-
-		fail(pkg, '#features', '#features');
-		fail(pkg, '#features', 'foobar/#features');
-
-		fail(pkg, '#features/', '#features/');
-		fail(pkg, '#features/', 'foobar/#features/');
-
-		pass(pkg, './features/a.js', 'foobar/#features/a');
-		pass(pkg, './features/ab.js', 'foobar/#features/ab');
-		pass(pkg, './features/abc.js', 'foobar/#features/abc');
-
-		pass(pkg, './features/hello.js', 'foobar/#features/hello');
-		pass(pkg, './features/hello.js', 'foobar/#features/hello.js');
-
-		pass(pkg, './features/foo/bar.js', 'foobar/#features/foo/bar');
-		pass(pkg, './features/foo/bar.js', 'foobar/#features/foo/bar.js');
-	});
-
-	it('imports["#features/*"] :: conditions', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#features/*": {
-					"browser": {
-						"import": "./browser.import/*.mjs",
-						"require": "./browser.require/*.js",
-					},
-					"import": "./import/*.mjs",
-					"require": "./require/*.js",
-				},
-			}
-		};
-
-		// import
-		fail(pkg, '#features/', '#features/'); // no file
-		fail(pkg, '#features/', 'foobar/#features/'); // no file
-
-		pass(pkg, './import/hello.mjs', '#features/hello');
-		pass(pkg, './import/hello.mjs', 'foobar/#features/hello');
-
-		// require
-		fail(pkg, '#features/', '#features/', { require: true }); // no file
-		fail(pkg, '#features/', 'foobar/#features/', { require: true }); // no file
-
-		pass(pkg, './require/hello.js', '#features/hello', { require: true });
-		pass(pkg, './require/hello.js', 'foobar/#features/hello', { require: true });
-
-		// require + browser
-		fail(pkg, '#features/', '#features/', { browser: true, require: true }); // no file
-		fail(pkg, '#features/', 'foobar/#features/', { browser: true, require: true }); // no file
-
-		pass(pkg, './browser.require/hello.js', '#features/hello', { browser: true, require: true });
-		pass(pkg, './browser.require/hello.js', 'foobar/#features/hello', { browser: true, require: true });
-	});
-
-	it('should handle mixed path/conditions', () => {
-		let pkg: Package = {
-			"name": "foobar",
-			"imports": {
-				"#foo": [
-					{
-						"require": "./$foo.require"
-					},
-					"./$foo.string"
-				]
-			}
-		};
-
-		// TODO? if len==1 then single?
-		pass(pkg, ['./$foo.string'], '#foo');
-		pass(pkg, ['./$foo.string'], 'foobar/#foo');
-
-		pass(pkg, ['./$foo.require', './$foo.string'], '#foo', { require: true });
-		pass(pkg, ['./$foo.require', './$foo.string'], 'foobar/#foo', { require: true });
-	});
-})
