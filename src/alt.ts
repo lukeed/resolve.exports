@@ -1,4 +1,4 @@
-import { walk } from './utils';
+import { toEntry, walk } from './utils';
 import type * as t from 'resolve.exports';
 
 export { legacy } from './legacy';
@@ -24,4 +24,13 @@ export function exports(pkg: t.Package, input?: string, options?: t.Options): Ou
 
 export function imports(pkg: t.Package, input: string, options?: t.Options): Output | void {
 	if (pkg.imports) return walk(pkg.name, pkg.imports, input, options);
+}
+
+export function resolve(pkg: t.Package, input?: string, options?: t.Options): Output | void {
+	// let entry = input && input !== '.'
+	// 	? toEntry(pkg.name, input)
+	// 	: '.';
+	let entry = toEntry(pkg.name, input || '.');
+	if (entry[0] === '#') return imports(pkg, entry, options);
+	if (entry[0] === '.') return exports(pkg, entry, options);
 }
