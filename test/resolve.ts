@@ -22,7 +22,7 @@ function fail(pkg: Package, target: Exports.Entry, entry?: string, options?: Opt
 
 // ---
 
-const resolve = suite('$.resolve');
+const resolve = suite('lib.resolve');
 
 resolve('should be a function', () => {
 	assert.type(lib.resolve, 'function');
