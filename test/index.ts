@@ -20,7 +20,7 @@ function fail(pkg: Package, target: Entry, entry?: string, options?: Options) {
 		assert.unreachable();
 	} catch (err) {
 		assert.instance(err, Error);
-		assert.is((err as Error).message, `Missing "${target}" export in "${pkg.name}" package`);
+		assert.is((err as Error).message, `Missing "${target}" specifier in "${pkg.name}" package`);
 	}
 }
 
@@ -64,7 +64,7 @@ describe('$.resolve', it => {
 			assert.unreachable();
 		} catch (err) {
 			assert.instance(err, Error);
-			assert.is((err as Error).message, `Missing "./other" export in "foobar" package`);
+			assert.is((err as Error).message, `Missing "./other" specifier in "foobar" package`);
 		}
 	});
 
@@ -87,7 +87,7 @@ describe('$.resolve', it => {
 			assert.unreachable();
 		} catch (err) {
 			assert.instance(err, Error);
-			assert.is((err as Error).message, `Missing "#bar" export in "foobar" package`);
+			assert.is((err as Error).message, `Missing "#bar" specifier in "foobar" package`);
 		}
 	});
 });
@@ -384,7 +384,7 @@ describe('$.imports', it => {
 		pass(pkg, './src/features/foo/bar.js', 'foobar/#features/foo/bar');
 
 		// TODO? Native throws `ERR_PACKAGE_PATH_NOT_EXPORTED`
-		// Currently throwing `Missing "%s" export in "$s" package`
+		// Currently throwing `Missing "%s" specifier in "$s" package`
 		fail(pkg, '#features/internal/hello', '#features/internal/hello');
 		fail(pkg, '#features/internal/foo/bar', '#features/internal/foo/bar');
 	});
@@ -406,7 +406,7 @@ describe('$.imports', it => {
 		pass(pkg, './src/features/foo/bar.js', 'foobar/#features/foo/bar');
 
 		// TODO? Native throws `ERR_PACKAGE_PATH_NOT_EXPORTED`
-		// Currently throwing `Missing "%s" export in "$s" package`
+		// Currently throwing `Missing "%s" specifier in "$s" package`
 		fail(pkg, '#features/internal/hello', '#features/internal/hello');
 		fail(pkg, '#features/internal/foo/bar', '#features/internal/foo/bar');
 	});
@@ -1038,7 +1038,7 @@ describe('$.exports', it => {
 		pass(pkg, './src/features/foo/bar.js', 'foobar/features/foo/bar');
 
 		// TODO? Native throws `ERR_PACKAGE_PATH_NOT_EXPORTED`
-		// Currently throwing `Missing "%s" export in "$s" package`
+		// Currently throwing `Missing "%s" specifier in "$s" package`
 		fail(pkg, './features/internal/hello', 'features/internal/hello');
 		fail(pkg, './features/internal/foo/bar', 'features/internal/foo/bar');
 	});
@@ -1060,7 +1060,7 @@ describe('$.exports', it => {
 		pass(pkg, './src/features/foo/bar.js', 'foobar/features/foo/bar');
 
 		// TODO? Native throws `ERR_PACKAGE_PATH_NOT_EXPORTED`
-		// Currently throwing `Missing "%s" export in "$s" package`
+		// Currently throwing `Missing "%s" specifier in "$s" package`
 		fail(pkg, './features/internal/hello', 'features/internal/hello');
 		fail(pkg, './features/internal/foo/bar', 'features/internal/foo/bar');
 	});
@@ -1296,7 +1296,7 @@ describe('options.conditions', it => {
 			assert.unreachable();
 		} catch (err) {
 			assert.instance(err, Error);
-			assert.is((err as Error).message, `No known conditions for "." entry in "hello" package`);
+			assert.is((err as Error).message, `No known conditions for "." specifier in "hello" package`);
 		}
 	});
 });

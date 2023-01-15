@@ -7,8 +7,8 @@ export type Mapping = Record<Entry, Value>;
 export function throws(name: string, entry: Entry, condition?: number): never {
 	throw new Error(
 		condition
-		? `No known conditions for "${entry}" entry in "${name}" package`
-		: `Missing "${entry}" export in "${name}" package`
+		? `No known conditions for "${entry}" specifier in "${name}" package`
+		: `Missing "${entry}" specifier in "${name}" package`
 	);
 }
 
