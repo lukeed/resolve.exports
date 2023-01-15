@@ -56,6 +56,9 @@ describe('$.resolve', it => {
 		let output = lib.resolve(pkg);
 		assert.is(output, './hello.mjs');
 
+		output = lib.resolve(pkg, '.');
+		assert.is(output, './hello.mjs');
+
 		try {
 			lib.resolve(pkg, './other');
 			assert.unreachable();
@@ -506,6 +509,24 @@ describe('$.exports', it => {
 
 		let output = lib.exports(pkg, '#any');
 		assert.is(output, undefined);
+	});
+
+	it('should default to "." target input', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"exports": {
+				".": "./hello.mjs"
+			}
+		};
+
+		let output = lib.exports(pkg);
+		assert.is(output, './hello.mjs');
+
+		output = lib.exports(pkg, '.');
+		assert.is(output, './hello.mjs');
+
+		output = lib.exports(pkg, 'foobar');
+		assert.is(output, './hello.mjs');
 	});
 
 	it('exports=string', () => {

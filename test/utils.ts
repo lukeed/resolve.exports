@@ -192,6 +192,39 @@ describe('$.toEntry', it => {
 	});
 });
 
+describe('$.injects', it => {
+	function run<T extends t.Path|t.Path[]>(input: T, value: string, expect: T) {
+		let output = $.injects(input, value);
+		if (Array.isArray(expect)) assert.equal(output, expect);
+		else assert.is(output, expect);
+	}
+
+	it('should be a function', () => {
+		assert.type($.injects, 'function');
+	});
+
+	it('should replace "*" character in string input', () => {
+		run('./foo*.jpg', 'bar', './foobar.jpg');
+	});
+
+	it('should replace multiple "*" characters w/ same value', () => {
+		run('./*/foo-*.jpg', 'bar', './bar/foo-bar.jpg');
+	});
+
+	// for the "./features/" => "./src/features/" scenario
+	it('should append `value` if missing "*" character', () => {
+		run('./src/features/', 'app.js', './src/features/app.js');
+	});
+
+	it('should accept string[] input', () => {
+		run(
+			['./foo/', './esm/*.mjs', './build/*/index-*.js'],
+			'xyz',
+			['./foo/xyz', './esm/xyz.mjs', './build/xyz/index-xyz.js'],
+		);
+	});
+});
+
 describe('$.loop', it => {
 	const FILE = './file.js';
 	const DEFAULT = './foobar.js';
