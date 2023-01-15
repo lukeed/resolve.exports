@@ -118,7 +118,7 @@ resolve.imports(pkg, 'foobar/#hash');
 // conditions: ["default"]
 resolve.imports(pkg, '#hash', { unsafe: true });
 resolve.imports(pkg, 'foobar/#hash');
-//=> "./hash/web.mjs"
+//=> "./hash/detect.mjs"
 
 resolve.imports(pkg, '#hello/world');
 resolve.imports(pkg, 'foobar/#hello/world');
@@ -143,9 +143,9 @@ The [`resolve()`](#resolvepkg-entry-options), [`exports()`](#exportspkg-entry-op
 
 ```ts
 type Output = string[] | string | undefined;
-export function resolve(pkg: Pacakge, entry?: string, options?: Options): Output;
-export function exports(pkg: Pacakge, entry?: string, options?: Options): Output;
-export function imports(pkg: Pacakge, target: string, options?: Options): Output;
+export function resolve(pkg: Package, entry?: string, options?: Options): Output;
+export function exports(pkg: Package, entry?: string, options?: Options): Output;
+export function imports(pkg: Package, target: string, options?: Options): Output;
 //                                         ^ not optional!
 ```
 
@@ -341,26 +341,26 @@ Default: `false`
 When enabled, this option will ignore **all other options** except [`options.conditions`](#optionsconditions). This is because, when enabled, `options.unsafe` **does not** assume or provide any default conditions except the `"default"` condition.
 
 ```js
-resolve(pkg);
+resolve.exports(pkg, '.');
 //=> Conditions: ["default", "import", "node"]
 
-resolve(pkg, { unsafe: true });
+resolve.exports(pkg, '.', { unsafe: true });
 //=> Conditions: ["default"]
 
-resolve(pkg, { unsafe: true, require: true, browser: true });
+resolve.exports(pkg, '.', { unsafe: true, require: true, browser: true });
 //=> Conditions: ["default"]
 ```
 
 In other words, this means that trying to use `options.require` or `options.browser` alongside `options.unsafe` will have no effect. In order to enable these conditions, you must provide them manually into the `options.conditions` list:
 
 ```js
-resolve(contents, {
+resolve.exports(pkg, '.', {
   unsafe: true,
   conditions: ["require"]
 });
 //=> Conditions: ["default", "require"]
 
-resolve(contents, {
+resolve.exports(pkg, '.', {
   unsafe: true,
   conditions: ["browser", "require", "custom123"]
 });
