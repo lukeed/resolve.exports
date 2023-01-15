@@ -1,6 +1,6 @@
 import * as uvu from 'uvu';
 import * as assert from 'uvu/assert';
-import * as lib from '../src';
+import * as lib from '../src/index';
 
 import type * as t from 'resolve.exports';
 
