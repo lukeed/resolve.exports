@@ -1,11 +1,32 @@
 export type Options = {
+	/**
+	 * When true, adds the "browser" conditions.
+	 * Otherwise the "node" condition is enabled.
+	 * @default false
+	 */
 	browser?: boolean;
+	/**
+	 * Any custom conditions to match.
+	 * @note Array order does not matter. Priority is determined by the key-order of conditions defined within a package's imports/exports mapping.
+	 * @default []
+	 */
 	conditions?: readonly string[];
+	/**
+	 * When true, adds the "require" condition.
+	 * Otherwise the "import" condition is enabled.
+	 * @default false
+	 */
 	require?: boolean;
+	/**
+	 * Prevents "require", "import", "browser", and/or "node" conditions from being added automatically.
+	 * When enabled, only `options.conditions` are added alongside the "default" condition.
+	 * @important Enabling this deviates from Node.js default behavior.
+	 * @default false
+	 */
 	unsafe?: boolean;
 }
 
-export function resolve<T=Package>(pkg: T, entry: string, options?: Options): Imports.Output | Exports.Output | void;
+export function resolve<T=Package>(pkg: T, entry?: string, options?: Options): Imports.Output | Exports.Output | void;
 
 type WithName<T extends string> = `${string}/${T}`;
 
@@ -40,7 +61,7 @@ export namespace Imports {
 
 	type External = string;
 
-	/** string ~> dependency OR internal path */
+	/** strings are dependency names OR internal paths */
 	export type Value = External | Path | null | {
 		[c: Condition]: Value;
 	} | Value[];
@@ -58,7 +79,7 @@ export namespace Exports {
 	/** Allows "." and "./{name}" */
 	export type Entry = `.${string}`;
 
-	/** string ~> internal path */
+	/** strings must be internal paths */
 	export type Value = Path | null | {
 		[c: Condition]: Value;
 	} | Value[];
