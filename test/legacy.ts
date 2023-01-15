@@ -4,7 +4,7 @@ import * as lib from '../src';
 
 import type { Package } from 'resolve.exports';
 
-const legacy = suite('$.legacy');
+const legacy = suite('lib.legacy');
 
 legacy('should be a function', () => {
 	assert.type(lib.legacy, 'function');
