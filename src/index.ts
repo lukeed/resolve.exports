@@ -1,103 +1,36 @@
-import * as $ from './utils';
-
+import { toEntry, walk } from './utils';
 import type * as t from 'resolve.exports';
 
 export { legacy } from './legacy';
 
-/**
- * @param name The package name
- * @param entry The target entry, eg "."
- * @param condition Unmatched condition?
- */
-function bail(name: string, entry: string, condition?: number): never {
-	throw new Error(
-		condition
-		? `No known conditions for "${entry}" entry in "${name}" package`
-		: `Missing "${entry}" export in "${name}" package`
-	);
-}
+type Output = string[] | string;
 
-export function resolve(pkg: t.Package, input?: string, options?: t.Options): string[] | string | void {
-	let entry = input && input !== '.'
-		? $.toEntry(pkg.name, input)
-		: '.';
+export function exports(pkg: t.Package, input?: string, options?: t.Options): Output | void {
+	let map = pkg.exports,
+		k: string;
 
-	if (entry[0] === '#') return imports(pkg, entry as t.Imports.Entry, options);
-	if (entry[0] === '.') return exports(pkg, entry as t.Exports.Entry, options);
-}
-
-export function imports(pkg: t.Package, key: t.Imports.Entry, options?: t.Options): t.Imports.Output | void {
-	//
-}
-
-export function exports(pkg: t.Package, target: t.Exports.Entry, options?: t.Options): t.Exports.Output | void {
-	let
-		name = pkg.name,
-		entry = $.toEntry(name, target),
-		isROOT = entry === '.',
-		map = pkg.exports;
-
-	if (!map) return;
-	if (typeof map === 'string') {
-		return isROOT ? map : bail(name, entry);
-	}
-
-	let
-		allows = $.conditions(options||{}),
-		key: t.Exports.Entry | string,
-		longest: t.Exports.Entry | undefined,
-		value: string | undefined | null,
-		match: RegExpExecArray | null,
-		tmp: any, // mixed
-		isONE = false;
-
-	for (key in map) {
-		isONE = key[0] !== '.';
-		break;
-	}
-
-	if (isONE) {
-		return isROOT
-			? $.loop(map, allows) as t.Exports.Output || bail(name, entry, 1)
-			: bail(name, entry);
-	}
-
-	if (tmp = map[entry]) {
-		return $.loop(tmp, allows) as t.Exports.Output || bail(name, entry, 1);
-	}
-
-	if (!isROOT) {
-		for (key in map) {
-			if (longest && key.length < longest.length) {
-				// do not allow "./" to match if already matched "./foo*" key
-			} else if (key[key.length - 1] === '/' && entry.startsWith(key)) {
-				value = entry.substring(key.length);
-				longest = key as t.Exports.Entry;
-			} else {
-				tmp = key.indexOf('*', 2);
-				if (!!~tmp) {
-					match = RegExp(
-						'^\.\/' + key.substring(2, tmp) + '(.*)' + key.substring(1+tmp)
-					).exec(entry);
-
-					if (match && match[1]) {
-						value = match[1];
-						longest = key as t.Exports.Entry;
-					}
-				}
-			}
+	if (map) {
+		if (typeof map === 'string') {
+			map = { '.': map };
+		} else for (k in map) {
+			// convert {conditions} to "."={condtions}
+			if (k[0] !== '.') map = { '.': map };
+			break;
 		}
 
-		if (longest && value) {
-			// must have a value
-			tmp = $.loop(map[longest], allows);
-			if (!tmp) return bail(name, entry);
-
-			return tmp.includes('*')
-				? tmp.replace(/[*]/g, value)
-				: tmp + value;
-		}
+		return walk(pkg.name, map, input||'.', options);
 	}
+}
 
-	return bail(name, entry);
+export function imports(pkg: t.Package, input: string, options?: t.Options): Output | void {
+	if (pkg.imports) return walk(pkg.name, pkg.imports, input, options);
+}
+
+export function resolve(pkg: t.Package, input?: string, options?: t.Options): Output | void {
+	// let entry = input && input !== '.'
+	// 	? toEntry(pkg.name, input)
+	// 	: '.';
+	let entry = toEntry(pkg.name, input || '.');
+	if (entry[0] === '#') return imports(pkg, entry, options);
+	if (entry[0] === '.') return exports(pkg, entry, options);
 }
