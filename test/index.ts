@@ -96,6 +96,42 @@ describe('$.resolve', it => {
 			assert.is((err as Error).message, `Missing "#bar" specifier in "foobar" package`);
 		}
 	});
+
+	it('should run `$.export` if given "external" identifier', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"exports": {
+				".": "./foo.mjs"
+			}
+		};
+
+		try {
+			lib.resolve(pkg, 'external');
+			assert.unreachable();
+		} catch (err) {
+			assert.instance(err, Error);
+			// IMPORTANT: treats "external" as "./external"
+			assert.is((err as Error).message, `Missing "./external" specifier in "foobar" package`);
+		}
+	});
+
+	it('should run `$.export` if given "external/subpath" identifier', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"exports": {
+				".": "./foo.mjs"
+			}
+		};
+
+		try {
+			lib.resolve(pkg, 'external/subpath');
+			assert.unreachable();
+		} catch (err) {
+			assert.instance(err, Error);
+			// IMPORTANT: treats "external/subpath" as "./external/subpath"
+			assert.is((err as Error).message, `Missing "./external/subpath" specifier in "foobar" package`);
+		}
+	});
 });
 
 describe('$.imports', it => {
