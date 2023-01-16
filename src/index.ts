@@ -3,9 +3,7 @@ import type * as t from 'resolve.exports';
 
 export { legacy } from './legacy';
 
-type Output = string[] | string;
-
-export function exports(pkg: t.Package, input?: string, options?: t.Options): Output | void {
+export function exports(pkg: t.Package, input?: string, options?: t.Options): string[] | void {
 	let map = pkg.exports,
 		k: string;
 
@@ -22,11 +20,11 @@ export function exports(pkg: t.Package, input?: string, options?: t.Options): Ou
 	}
 }
 
-export function imports(pkg: t.Package, input: string, options?: t.Options): Output | void {
+export function imports(pkg: t.Package, input: string, options?: t.Options): string[] | void {
 	if (pkg.imports) return walk(pkg.name, pkg.imports, input, options);
 }
 
-export function resolve(pkg: t.Package, input?: string, options?: t.Options): Output | void {
+export function resolve(pkg: t.Package, input?: string, options?: t.Options): string[] | void {
 	// let entry = input && input !== '.'
 	// 	? toEntry(pkg.name, input)
 	// 	: '.';

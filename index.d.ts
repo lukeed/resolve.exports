@@ -64,7 +64,7 @@ export namespace Imports {
 	} | Value[];
 
 
-	export type Output = Array<External|Path> | External | Path;
+	export type Output = Array<External|Path>;
 }
 
 export type Exports = Path | {
@@ -81,7 +81,7 @@ export namespace Exports {
 		[c: Condition]: Value;
 	} | Value[];
 
-	export type Output = Path[] | Path;
+	export type Output = Path[];
 }
 
 export type Package = {

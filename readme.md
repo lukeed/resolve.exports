@@ -62,18 +62,18 @@ const pkg = {
 resolve.exports(pkg);
 resolve.exports(pkg, '.');
 resolve.exports(pkg, 'foobar');
-//=> "./dist/module.mjs"
+//=> ["./dist/module.mjs"]
 
 // entry: "foobar/lite" === "./lite"
 // conditions: ["default", "import", "node"]
 resolve.exports(pkg, 'foobar/lite');
 resolve.exports(pkg, './lite');
-//=> "./lite/module.mjs"
+//=> ["./lite/module.mjs"]
 
 // Enable `require` condition
 // conditions: ["default", "require", "node"]
-resolve.exports(pkg, 'foobar', { require: true }); //=> "./dist/require.js"
-resolve.exports(pkg, './lite', { require: true }); //=> "./lite/require.js"
+resolve.exports(pkg, 'foobar', { require: true }); //=> ["./dist/require.js"]
+resolve.exports(pkg, './lite', { require: true }); //=> ["./lite/require.js"]
 
 // Throws "Missing <entry> specifier in <name> package" Error
 resolve.exports(pkg, 'foobar/hello');
@@ -83,14 +83,14 @@ resolve.exports(pkg, './hello/world');
 // conditions: ["default", "worker", "import", "node"]
 resolve.exports(pkg, 'foobar/lite', {
   conditions: ['worker']
-}); //=> "./lite/worker.node.js"
+}); //=> ["./lite/worker.node.js"]
 
 // Toggle "browser" condition
 // conditions: ["default", "worker", "import", "browser"]
 resolve.exports(pkg, 'foobar/lite', {
   conditions: ['worker'],
   browser: true
-}); //=> "./lite/worker.browser.js"
+}); //=> ["./lite/worker.browser.js"]
 
 // Disable non-"default" condition activate
 // NOTE: breaks from Node.js default behavior
@@ -108,17 +108,17 @@ resolve.exports(pkg, 'foobar/lite', {
 // conditions: ["default", "import", "node"]
 resolve.imports(pkg, '#hash');
 resolve.imports(pkg, 'foobar/#hash');
-//=> "./hash/node.mjs"
+//=> ["./hash/node.mjs"]
 
 // conditions: ["default", "import", "browser"]
 resolve.imports(pkg, '#hash', { browser: true });
 resolve.imports(pkg, 'foobar/#hash');
-//=> "./hash/web.mjs"
+//=> ["./hash/web.mjs"]
 
 // conditions: ["default"]
 resolve.imports(pkg, '#hash', { unsafe: true });
 resolve.imports(pkg, 'foobar/#hash');
-//=> "./hash/detect.mjs"
+//=> ["./hash/detect.mjs"]
 
 resolve.imports(pkg, '#hello/world');
 resolve.imports(pkg, 'foobar/#hello/world');
@@ -142,10 +142,9 @@ resolve.legacy(pkg, {
 The [`resolve()`](#resolvepkg-entry-options), [`exports()`](#exportspkg-entry-options), and [`imports()`](#importspkg-target-options) functions share similar API signatures:
 
 ```ts
-type Output = string[] | string | undefined;
-export function resolve(pkg: Package, entry?: string, options?: Options): Output;
-export function exports(pkg: Package, entry?: string, options?: Options): Output;
-export function imports(pkg: Package, target: string, options?: Options): Output;
+export function resolve(pkg: Package, entry?: string, options?: Options): string[] | undefined;
+export function exports(pkg: Package, entry?: string, options?: Options): string[] | undefined;
+export function imports(pkg: Package, target: string, options?: Options): string[] | undefined;
 //                                         ^ not optional!
 ```
 
@@ -164,7 +163,7 @@ See below for further API descriptions.
 ---
 
 ### resolve(pkg, entry?, options?)
-Returns: `string[]` or `string` or `undefined`
+Returns: `string[]` or `undefined`
 
 A convenience helper which automatically reroutes to [`exports()`](#exportspkg-entry-options) or [`imports()`](#importspkg-target-options) depending on the `entry` value.
 
@@ -195,7 +194,7 @@ r.resolve(pkg, 'foobar/#hash/md5');
 ```
 
 ### exports(pkg, entry?, options?)
-Returns: `string[]` or `string` or `undefined`
+Returns: `string[]` or `undefined`
 
 Traverse the `"exports"` within the contents of a `package.json` file. <br>
 If the contents _does not_ contain an `"exports"` map, then `undefined` will be returned.
@@ -241,7 +240,7 @@ Assume we have a module named "foobar" and whose `pkg` contains `"name": "foobar
 
 
 ### imports(pkg, target, options?)
-Returns: `string[]` or `string` or `undefined`
+Returns: `string[]` or `undefined`
 
 Traverse the `"imports"` within the contents of a `package.json` file. <br>
 If the contents _does not_ contain an `"imports"` map, then `undefined` will be returned.
@@ -312,33 +311,33 @@ const pkg = {
 
 resolve.exports(pkg, '.');
 // Conditions: ["default", "import", "node"]
-//=> "./$import.mjs"
+//=> ["./$import.mjs"]
 
 resolve.exports(pkg, '.', {
   conditions: ['production']
 });
 // Conditions: ["default", "production", "import", "node"]
-//=> "./$production.js"
+//=> ["./$production.js"]
 
 resolve.exports(pkg, '.', {
   conditions: ['production'],
   require: true,
 });
 // Conditions: ["default", "production", "require", "node"]
-//=> "./$require.js"
+//=> ["./$require.js"]
 
 resolve.exports(pkg, '.', {
   conditions: ['production', 'worker'],
   require: true,
 });
 // Conditions: ["default", "production", "worker", "require", "node"]
-//=> "./$worker.js"
+//=> ["./$worker.js"]
 
 resolve.exports(pkg, '.', {
   conditions: ['production', 'worker']
 });
 // Conditions: ["default", "production", "worker", "import", "node"]
-//=> "./$worker.js"
+//=> ["./$worker.js"]
 ```
 
 #### options.unsafe

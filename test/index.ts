@@ -10,8 +10,14 @@ type Options = t.Options;
 
 function pass(pkg: Package, expects: string|string[], entry?: string, options?: Options) {
 	let out = lib.resolve(pkg, entry, options);
-	if (Array.isArray(expects)) assert.equal(out, expects);
-	else assert.is(out, expects);
+	if (typeof expects === 'string') {
+		assert.ok(Array.isArray(out));
+		assert.is(out[0], expects);
+		assert.is(out.length, 1);
+	} else {
+		// Array | null | undefined
+		assert.equal(out, expects);
+	}
 }
 
 function fail(pkg: Package, target: Entry, entry?: string, options?: Options) {
@@ -54,10 +60,10 @@ describe('$.resolve', it => {
 		};
 
 		let output = lib.resolve(pkg);
-		assert.is(output, './hello.mjs');
+		assert.equal(output, ['./hello.mjs']);
 
 		output = lib.resolve(pkg, '.');
-		assert.is(output, './hello.mjs');
+		assert.equal(output, ['./hello.mjs']);
 
 		try {
 			lib.resolve(pkg, './other');
@@ -77,10 +83,10 @@ describe('$.resolve', it => {
 		};
 
 		let output = lib.resolve(pkg, '#foo');
-		assert.is(output, './foo.mjs');
+		assert.equal(output, ['./foo.mjs']);
 
 		output = lib.resolve(pkg, 'foobar/#foo');
-		assert.is(output, './foo.mjs');
+		assert.equal(output, ['./foo.mjs']);
 
 		try {
 			lib.resolve(pkg, '#bar');
@@ -520,13 +526,13 @@ describe('$.exports', it => {
 		};
 
 		let output = lib.exports(pkg);
-		assert.is(output, './hello.mjs');
+		assert.equal(output, ['./hello.mjs']);
 
 		output = lib.exports(pkg, '.');
-		assert.is(output, './hello.mjs');
+		assert.equal(output, ['./hello.mjs']);
 
 		output = lib.exports(pkg, 'foobar');
-		assert.is(output, './hello.mjs');
+		assert.equal(output, ['./hello.mjs']);
 	});
 
 	it('exports=string', () => {
