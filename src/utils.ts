@@ -23,11 +23,10 @@ export function walk(name: string, mapping: Mapping, input: string, options?: t.
 	let entry = toEntry(name, input);
 	let c = conditions(options || {});
 
-	let m: Value | undefined = mapping[entry];
-	let replace: string | undefined;
-	let exact = m !== void 0;
+	let m: Value|void = mapping[entry];
+	let v: string[]|void, replace: string|void;
 
-	if (!exact) {
+	if (m === void 0) {
 		// loop for longest key match
 		let match: RegExpExecArray|null;
 		let longest: Entry|undefined;
@@ -41,7 +40,6 @@ export function walk(name: string, mapping: Mapping, input: string, options?: t.
 				replace = entry.substring(key.length);
 				longest = key;
 			} else if (key.length > 1) {
-				// TODO: RegExp().exec everything?
 				tmp = key.indexOf('*', 2);
 
 				if (!!~tmp) {
@@ -65,14 +63,17 @@ export function walk(name: string, mapping: Mapping, input: string, options?: t.
 		throws(name, entry);
 	}
 
-	let v = loop(m, c);
+	v = loop(m, c);
+
 	// unknown condition(s)
 	if (!v) throws(name, entry, 1);
+	if (replace) injects(v, replace);
 
-	return (exact || !replace) ? v : injects(v, replace);
+	return v;
 }
 
-export function injects(items: string[], value: string): string[] {
+/** @note: mutates! */
+export function injects(items: string[], value: string): void {
 	let i=0, len=items.length, rgx=/[*]/g, tmp: string;
 
 	for (; i < len; i++) {
@@ -80,8 +81,6 @@ export function injects(items: string[], value: string): string[] {
 			? tmp.replace(rgx, value)
 			: (tmp+value);
 	}
-
-	return items;
 }
 
 /**
