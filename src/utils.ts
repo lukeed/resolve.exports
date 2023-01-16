@@ -19,7 +19,7 @@ export function conditions(options: t.Options): Set<t.Condition> {
 	return out;
 }
 
-export function walk(name: string, mapping: Mapping, input: string, options?: t.Options): string[] | string {
+export function walk(name: string, mapping: Mapping, input: string, options?: t.Options): string[] {
 	let entry = toEntry(name, input);
 	let c = conditions(options || {});
 
@@ -72,18 +72,16 @@ export function walk(name: string, mapping: Mapping, input: string, options?: t.
 	return (exact || !replace) ? v : injects(v, replace);
 }
 
-export function injects(item: string[]|string, value: string): string[]|string {
-	let bool = Array.isArray(item);
-	let arr: string[] = bool ? item as string[] : [item as string];
-	let i=0, len=arr.length, rgx=/[*]/g, tmp: string;
+export function injects(items: string[], value: string): string[] {
+	let i=0, len=items.length, rgx=/[*]/g, tmp: string;
 
 	for (; i < len; i++) {
-		arr[i] = rgx.test(tmp = arr[i])
+		items[i] = rgx.test(tmp = items[i])
 			? tmp.replace(rgx, value)
 			: (tmp+value);
 	}
 
-	return bool ? arr : arr[0];
+	return items;
 }
 
 /**
@@ -108,26 +106,25 @@ export function toEntry(name: string, ident: string, externals?: boolean): Entry
 		: output as string | t.Exports.Entry;
 }
 
-export function loop(m: Value, keys: Set<t.Condition>, result?: Set<string>): string[] | string | void {
+export function loop(m: Value, keys: Set<t.Condition>, result?: Set<string>): string[] | void {
 	if (m) {
 		if (typeof m === 'string') {
-			return m;
+			if (result) result.add(m);
+			return [m];
 		}
 
 		let
 			idx: number | string,
-			arr: Set<string>,
-			tmp: string[] | string | void;
+			arr: Set<string>;
 
 		if (Array.isArray(m)) {
 			arr = result || new Set;
 
 			for (idx=0; idx < m.length; idx++) {
-				tmp = loop(m[idx], keys, arr);
-				if (tmp) arr.add(tmp as string);
+				loop(m[idx], keys, arr);
 			}
 
-			// TODO: send string if len=1?
+			// return if initialized set
 			if (!result && arr.size) {
 				return [...arr];
 			}

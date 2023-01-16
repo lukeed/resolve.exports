@@ -193,33 +193,31 @@ describe('$.toEntry', it => {
 });
 
 describe('$.injects', it => {
-	function run<T extends t.Path|t.Path[]>(input: T, value: string, expect: T) {
+	function run<T extends t.Path[]>(value: string, input: T, expect: T) {
 		let output = $.injects(input, value);
-		if (Array.isArray(expect)) assert.equal(output, expect);
-		else assert.is(output, expect);
+		assert.equal(output, expect);
 	}
 
 	it('should be a function', () => {
 		assert.type($.injects, 'function');
 	});
 
-	it('should replace "*" character in string input', () => {
-		run('./foo*.jpg', 'bar', './foobar.jpg');
+	it('should replace "*" character', () => {
+		run('bar', ['./foo*.jpg'], ['./foobar.jpg']);
 	});
 
 	it('should replace multiple "*" characters w/ same value', () => {
-		run('./*/foo-*.jpg', 'bar', './bar/foo-bar.jpg');
+		run('bar', ['./*/foo-*.jpg'], ['./bar/foo-bar.jpg']);
 	});
 
 	// for the "./features/" => "./src/features/" scenario
 	it('should append `value` if missing "*" character', () => {
-		run('./src/features/', 'app.js', './src/features/app.js');
+		run('app.js', ['./src/features/'], ['./src/features/app.js']);
 	});
 
-	it('should accept string[] input', () => {
-		run(
+	it('should handle mixed array input', () => {
+		run('xyz',
 			['./foo/', './esm/*.mjs', './build/*/index-*.js'],
-			'xyz',
 			['./foo/xyz', './esm/xyz.mjs', './build/xyz/index-xyz.js'],
 		);
 	});
@@ -232,7 +230,14 @@ describe('$.loop', it => {
 	type Expect = string | string[] | null | undefined;
 	function run(expect: Expect, map: t.Exports.Value, conditions?: string[]) {
 		let output = $.loop(map, new Set([ 'default', ...conditions||[] ]));
-		assert.equal(output, expect);
+		if (typeof expect == 'string') {
+			assert.ok(Array.isArray(output));
+			assert.is(output[0], expect);
+			assert.is(output.length, 1);
+		} else {
+			// Array, null, undefined
+			assert.equal(output, expect);
+		}
 	}
 
 	it('should be a function', () => {
