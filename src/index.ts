@@ -28,7 +28,8 @@ export function resolve(pkg: t.Package, input?: string, options?: t.Options): st
 	// let entry = input && input !== '.'
 	// 	? toEntry(pkg.name, input)
 	// 	: '.';
-	let entry = toEntry(pkg.name, input || '.');
-	if (entry[0] === '#') return imports(pkg, entry, options);
-	if (entry[0] === '.') return exports(pkg, entry, options);
+	input = toEntry(pkg.name, input || '.');
+	return input[0] === '#'
+		? imports(pkg, input, options)
+		: exports(pkg, input, options);
 }
