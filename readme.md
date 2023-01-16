@@ -279,21 +279,19 @@ Collectively, the `options` are used to assemble a list of [conditions](https://
 Type: `boolean` <br>
 Default: `false`
 
-When truthy, the `"require"` field is added to the list of allowed/known conditions.
-
-When falsey, the `"import"` field is added to the list of allowed/known conditions instead.
+When truthy, the `"require"` field is added to the list of allowed/known conditions. Otherwise the `"import"` field is added instead.
 
 #### options.browser
 Type: `boolean` <br>
 Default: `false`
 
-When truthy, the `"browser"` field is added to the list of allowed/known conditions.
+When truthy, the `"browser"` field is added to the list of allowed/known conditions. Otherwise the `"node"` field is added instead.
 
 #### options.conditions
 Type: `string[]` <br>
 Default: `[]`
 
-Provide a list of additional/custom conditions that should be accepted when seen.
+A list of additional/custom conditions that should be accepted when seen.
 
 > **Important:** The order specified within `options.conditions` does not matter. <br>The matching order/priority is **always** determined by the `"exports"` map's key order.
 
@@ -303,33 +301,42 @@ For example, you may choose to accept a `"production"` condition in certain envi
 const pkg = {
   // package.json ...
   "exports": {
-    "worker": "./index.worker.js",
-    "require": "./index.require.js",
-    "production": "./index.prod.js",
-    "import": "./index.import.mjs",
+    "worker": "./$worker.js",
+    "require": "./$require.js",
+    "production": "./$production.js",
+    "import": "./$import.mjs",
   }
 };
 
 resolve.exports(pkg, '.');
-//=> "./index.import.mjs"
+// Conditions: ["default", "import", "node"]
+//=> "./$import.mjs"
 
 resolve.exports(pkg, '.', {
   conditions: ['production']
-}); //=> "./index.prod.js"
+});
+// Conditions: ["default", "production", "import", "node"]
+//=> "./$production.js"
 
 resolve.exports(pkg, '.', {
   conditions: ['production'],
   require: true,
-}); //=> "./index.require.js"
+});
+// Conditions: ["default", "production", "require", "node"]
+//=> "./$require.js"
 
 resolve.exports(pkg, '.', {
   conditions: ['production', 'worker'],
   require: true,
-}); //=> "./index.worker.js"
+});
+// Conditions: ["default", "production", "worker", "require", "node"]
+//=> "./$worker.js"
 
 resolve.exports(pkg, '.', {
   conditions: ['production', 'worker']
-}); //=> "./index.worker.js"
+});
+// Conditions: ["default", "production", "worker", "import", "node"]
+//=> "./$worker.js"
 ```
 
 #### options.unsafe
