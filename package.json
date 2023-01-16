@@ -2,7 +2,7 @@
   "version": "2.0.0-next.0",
   "name": "resolve.exports",
   "repository": "lukeed/resolve.exports",
-  "description": "A tiny (987b), correct, general-purpose, and configurable \"exports\" and \"imports\" resolver without file-system reliance",
+  "description": "A tiny (970b), correct, general-purpose, and configurable \"exports\" and \"imports\" resolver without file-system reliance",
   "module": "dist/index.mjs",
   "main": "dist/index.js",
   "types": "index.d.ts",
