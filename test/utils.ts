@@ -195,7 +195,8 @@ describe('$.toEntry', it => {
 describe('$.injects', it => {
 	function run<T extends t.Path[]>(value: string, input: T, expect: T) {
 		let output = $.injects(input, value);
-		assert.equal(output, expect);
+		assert.is(output, undefined);
+		assert.equal(input, expect);
 	}
 
 	it('should be a function', () => {
