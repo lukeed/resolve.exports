@@ -279,13 +279,15 @@ Collectively, the `options` are used to assemble a list of [conditions](https://
 Type: `boolean` <br>
 Default: `false`
 
-When truthy, the `"require"` field is added to the list of allowed/known conditions. Otherwise the `"import"` field is added instead.
+When truthy, the `"require"` field is added to the list of allowed/known conditions. <br>
+Otherwise the `"import"` field is added instead.
 
 #### options.browser
 Type: `boolean` <br>
 Default: `false`
 
-When truthy, the `"browser"` field is added to the list of allowed/known conditions. Otherwise the `"node"` field is added instead.
+When truthy, the `"browser"` field is added to the list of allowed/known conditions. <br>
+Otherwise the `"node"` field is added instead.
 
 #### options.conditions
 Type: `string[]` <br>
