@@ -44,7 +44,7 @@ const pkg = {
     },
     "./lite": {
       "worker": {
-        "browser": "./lite/worker.brower.js",
+        "browser": "./lite/worker.browser.js",
         "node": "./lite/worker.node.js"
       },
       "import": "./lite/module.mjs",
