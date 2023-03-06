@@ -858,6 +858,21 @@ describe('$.exports', it => {
 		pass(pkg, './test/innersub/dirtest/inner/file.js', 'foobar/dirtest/inner');
 	});
 
+	it('exports["./dir/*"] :: "*" value', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"exports": {
+				".": "./dir/index.js",
+				"./dir": "./dir/index.js",
+				"./dir/*": "./dir/index.js"
+			}
+		};
+
+		pass(pkg, './dir/index.js', 'foobar');
+		pass(pkg, './dir/index.js', 'foobar/dir');
+		pass(pkg, './dir/index.js', 'foobar/dir/profile');
+	});
+
 	it('exports["./dir*"] :: share "name" start', () => {
 		let pkg: Package = {
 			"name": "director",
