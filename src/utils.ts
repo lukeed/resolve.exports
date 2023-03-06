@@ -74,12 +74,15 @@ export function walk(name: string, mapping: Mapping, input: string, options?: t.
 
 /** @note: mutates! */
 export function injects(items: string[], value: string): void {
-	let i=0, len=items.length, rgx=/[*]/g, tmp: string;
+	let i=0, len=items.length, tmp: string;
+	let rgx1=/[*]/g, rgx2 = /[/]$/;
 
 	for (; i < len; i++) {
-		items[i] = rgx.test(tmp = items[i])
-			? tmp.replace(rgx, value)
-			: (tmp+value);
+		items[i] = rgx1.test(tmp = items[i])
+			? tmp.replace(rgx1, value)
+			: rgx2.test(tmp)
+				? (tmp+value)
+				: tmp;
 	}
 }
 
