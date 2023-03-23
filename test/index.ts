@@ -368,7 +368,7 @@ describe('$.imports', it => {
 	});
 
 	// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
-	it('exports["#fooba*"] :: with "#foo*" key', () => {
+	it('imports["#fooba*"] :: with "#foo*" key', () => {
 		let pkg: Package = {
 			"name": "foobar",
 			"imports": {
@@ -407,6 +407,104 @@ describe('$.imports', it => {
 		// Valid: Pattern trailers allow any exact substrings to be matched
 		pass(pkg, './features/r/hello.js.js', 'foobar/#foobar/hello.js');
 		pass(pkg, './features/r/foo/bar.js.js', 'foobar/#foobar/foo/bar.js');
+	});
+
+	// https://github.com/lukeed/resolve.exports/issues/27
+	it('imports["#*"] :: with "#foo*" key', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#*": "./root/*.js",
+				"#foo*": "./foo/*.js"
+			}
+		};
+
+		// "#foo*"
+		pass(pkg, './foo/bar.js', '#foobar');
+		pass(pkg, './foo/bar.js', 'foobar/#foobar');
+
+		pass(pkg, './foo/bar/hello.js', 'foobar/#foobar/hello');
+		pass(pkg, './foo/bar/foo/bar.js', 'foobar/#foobar/foo/bar');
+
+		// Valid: Pattern trailers allow any exact substrings to be matched
+		pass(pkg, './foo/bar/hello.js.js', 'foobar/#foobar/hello.js');
+		pass(pkg, './foo/bar/foo/bar.js.js', 'foobar/#foobar/foo/bar.js');
+
+		// "#*"
+		pass(pkg, './root/other.js', '#other');
+		pass(pkg, './root/other.js', 'foobar/#other');
+
+		pass(pkg, './root/other/hello.js', 'foobar/#other/hello');
+		pass(pkg, './root/other/foo/bar.js', 'foobar/#other/foo/bar');
+
+		// Valid: Pattern trailers allow any exact substrings to be matched
+		pass(pkg, './root/other/hello.js.js', 'foobar/#other/hello.js');
+		pass(pkg, './root/other/foo/bar.js.js', 'foobar/#other/foo/bar.js');
+	});
+
+	// https://github.com/lukeed/resolve.exports/issues/27
+	it('imports["#*"] :: with "#foo*" key first', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#foo*": "./foo/*.js",
+				"#*": "./root/*.js"
+			}
+		};
+
+		// "#foo*"
+		pass(pkg, './foo/bar.js', '#foobar');
+		pass(pkg, './foo/bar.js', 'foobar/#foobar');
+
+		pass(pkg, './foo/bar/hello.js', 'foobar/#foobar/hello');
+		pass(pkg, './foo/bar/foo/bar.js', 'foobar/#foobar/foo/bar');
+
+		// Valid: Pattern trailers allow any exact substrings to be matched
+		pass(pkg, './foo/bar/hello.js.js', 'foobar/#foobar/hello.js');
+		pass(pkg, './foo/bar/foo/bar.js.js', 'foobar/#foobar/foo/bar.js');
+
+		// "#*"
+		pass(pkg, './root/other.js', '#other');
+		pass(pkg, './root/other.js', 'foobar/#other');
+
+		pass(pkg, './root/other/hello.js', 'foobar/#other/hello');
+		pass(pkg, './root/other/foo/bar.js', 'foobar/#other/foo/bar');
+
+		// Valid: Pattern trailers allow any exact substrings to be matched
+		pass(pkg, './root/other/hello.js.js', 'foobar/#other/hello.js');
+		pass(pkg, './root/other/foo/bar.js.js', 'foobar/#other/foo/bar.js');
+	});
+
+	it('imports["#*"] :: with "#a" static key', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#*": "./root/*.js",
+				"#a": "./a.js",
+			}
+		};
+
+		pass(pkg, './root/other.js', '#other');
+		pass(pkg, './root/other.js', 'foobar/#other');
+
+		pass(pkg, './a.js', '#a');
+		pass(pkg, './a.js', 'foobar/#a');
+	});
+
+	it('imports["#*"] :: with "#a" static key first', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#a": "./a.js",
+				"#*": "./root/*.js",
+			}
+		};
+
+		pass(pkg, './root/other.js', '#other');
+		pass(pkg, './root/other.js', 'foobar/#other');
+
+		pass(pkg, './a.js', '#a');
+		pass(pkg, './a.js', 'foobar/#a');
 	});
 
 	// https://github.com/lukeed/resolve.exports/issues/16
