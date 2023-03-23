@@ -40,7 +40,7 @@ export function walk(name: string, mapping: Mapping, input: string, options?: t.
 				replace = entry.substring(key.length);
 				longest = key;
 			} else if (key.length > 1) {
-				tmp = key.indexOf('*', 2);
+				tmp = key.indexOf('*', 1);
 
 				if (!!~tmp) {
 					match = RegExp(
