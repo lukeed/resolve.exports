@@ -1,4 +1,4 @@
-# resolve.exports [![CI](https://github.com/lukeed/resolve.exports/workflows/CI/badge.svg)](https://github.com/lukeed/resolve.exports/actions) [![codecov](https://codecov.io/gh/lukeed/resolve.exports/branch/master/graph/badge.svg?token=4P7d4Omw2h)](https://codecov.io/gh/lukeed/resolve.exports)
+# resolve.exports [![CI](https://github.com/lukeed/resolve.exports/workflows/CI/badge.svg)](https://github.com/lukeed/resolve.exports/actions) [![licenses](https://licenses.dev/b/npm/resolve.exports)](https://licenses.dev/npm/resolve.exports) [![codecov](https://codecov.io/gh/lukeed/resolve.exports/branch/master/graph/badge.svg?token=4P7d4Omw2h)](https://codecov.io/gh/lukeed/resolve.exports)
 
 > A tiny (952b), correct, general-purpose, and configurable `"exports"` and `"imports"` resolver without file-system reliance
 
