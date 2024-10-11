@@ -1434,12 +1434,12 @@ describe('options.conditions', it => {
 		});
 	});
 
-	it('should traverse multiple nested condition objects when no correct conditions are found in the first', () => {
+	it('should traverse multiple nested condition objects if no true conditions exist under first correct top level condition', () => {
 		const pkg: Package = {
 			"name": "test",
 			"exports": {
 				"a": {
-					"c": "./$prod.unknown",
+					"c": "./$a.c",
 				},
 				"b": {
 					"d": "./$b.d",
