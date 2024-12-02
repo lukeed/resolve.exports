@@ -635,6 +635,18 @@ describe('$.imports', it => {
 		pass(pkg, ['./$foo.require', './$foo.string'], '#foo', { require: true });
 		pass(pkg, ['./$foo.require', './$foo.string'], 'foobar/#foo', { require: true });
 	});
+
+	// https://github.com/lukeed/resolve.exports/issues/34
+	it('imports["#features/*"] :: avoid lazy matching', () => {
+		let pkg: Package = {
+			name: 'test',
+			imports: {
+				'#features/*.css': './src/*.css',
+    		'#features/*.ts': './src/*.ts',
+			}
+		};
+		pass(pkg, './src/asdf/css.ts', '#features/asdf/css.ts');
+	});	
 });
 
 describe('$.exports', it => {

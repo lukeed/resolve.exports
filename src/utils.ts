@@ -44,7 +44,7 @@ export function walk(name: string, mapping: Mapping, input: string, options?: t.
 
 				if (!!~tmp) {
 					match = RegExp(
-						'^' + key.substring(0, tmp) + '(.*)' + key.substring(1+tmp)
+						'^' + key.substring(0, tmp) + '(.*)' + key.substring(1+tmp) + '$'
 					).exec(entry);
 
 					if (match && match[1]) {
