@@ -1446,6 +1446,24 @@ describe('options.conditions', it => {
 		});
 	});
 
+	it('should traverse multiple nested condition objects if no true conditions exist under first correct top level condition', () => {
+		const pkg: Package = {
+			"name": "test",
+			"exports": {
+				"a": {
+					"c": "./$a.c",
+				},
+				"b": {
+					"d": "./$b.d",
+				}
+			}
+		};
+	
+		pass(pkg, './$b.d', '.', {
+			conditions: ['a', 'b', 'd']
+		});
+	})
+
 	it('should throw an error if no known conditions', () => {
 		let ctx: Package = {
 			"name": "hello",
