@@ -31,15 +31,20 @@ jobs:
         node-version: ${{ matrix.nodejs }}
 
     - name: Install
-      run: |
-        npm install
-        npm install -g nyc
+      run: npm install
 
     - name: Type Check
       run: npm run types
 
+    - name: Test
+      if: matrix.nodejs < 18
+      run: npm test
+      
     - name: Test w/ Coverage
-      run: nyc --include=src npm test
+      if: matrix.nodejs >= 18
+      run: |
+        npm install -g nyc
+        nyc --include=src npm test
 
     - name: Compile
       if: matrix.nodejs >= 18
