@@ -642,11 +642,22 @@ describe('$.imports', it => {
 			name: 'test',
 			imports: {
 				'#features/*.css': './src/*.css',
-    		'#features/*.ts': './src/*.ts',
+				'#features/*.ts': './src/*.ts',
 			}
 		};
 		pass(pkg, './src/asdf/css.ts', '#features/asdf/css.ts');
-	});	
+	});
+
+	it('imports["#features/*"] :: escape regexp', () => {
+		let pkg: Package = {
+			name: 'test',
+			imports: {
+				'#features/*.css': './src/*.css',
+			}
+		};
+		fail(pkg, '#features/unexists.scss', '#features/unexists.scss');
+	});
+
 });
 
 describe('$.exports', it => {
