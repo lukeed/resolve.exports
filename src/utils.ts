@@ -19,6 +19,14 @@ export function conditions(options: t.Options): Set<t.Condition> {
 	return out;
 }
 
+const regexSyntaxCharacters = '^$\\.*+?()[]{}|/'.split('');
+const regexSyntaxCharactersRegExp = new RegExp(`[${regexSyntaxCharacters.map((char) => `\\${char}`).join('')}]`, 'g');
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/escape
+ */
+const regExpEscape = (raw: string) => raw.replace(regexSyntaxCharactersRegExp, '\\$&');
+
 export function walk(name: string, mapping: Mapping, input: string, options?: t.Options): string[] {
 	let entry = toEntry(name, input);
 	let c = conditions(options || {});
@@ -44,7 +52,7 @@ export function walk(name: string, mapping: Mapping, input: string, options?: t.
 
 				if (!!~tmp) {
 					match = RegExp(
-						'^' + key.substring(0, tmp) + '(.*)' + key.substring(1+tmp) + '$'
+						'^' + regExpEscape(key.substring(0, tmp)) + '(.*)' + regExpEscape(key.substring(1+tmp)) + '$'
 					).exec(entry);
 
 					if (match && match[1]) {
