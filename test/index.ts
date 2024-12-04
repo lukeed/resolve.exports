@@ -655,7 +655,7 @@ describe('$.imports', it => {
 				'#features/*.css': './src/*.css',
 			}
 		};
-		fail(pkg, '#features/unexists.scss', '#features/unexists.scss'); // './src/unexists..css'
+		fail(pkg, '#features/unexists.scss', '#features/unexists.scss');
 	});
 
 });
