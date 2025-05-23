@@ -19,6 +19,8 @@ export function conditions(options: t.Options): Set<t.Condition> {
 	return out;
 }
 
+const escape = RegExp.escape ?? ((str: string) => str.replace(/\./g, '\\.'));
+
 export function walk(name: string, mapping: Mapping, input: string, options?: t.Options): string[] {
 	let entry = toEntry(name, input);
 	let c = conditions(options || {});
@@ -44,7 +46,7 @@ export function walk(name: string, mapping: Mapping, input: string, options?: t.
 
 				if (!!~tmp) {
 					match = RegExp(
-						'^' + key.substring(0, tmp) + '(.*)' + key.substring(1+tmp) + '$'
+						'^' + escape(key.substring(0, tmp)) + '(.*)' + escape(key.substring(1+tmp)) + '$'
 					).exec(entry);
 
 					if (match && match[1]) {
