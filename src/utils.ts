@@ -79,7 +79,7 @@ export function injects(items: string[], value: string): void {
 
 	for (; i < len; i++) {
 		items[i] = rgx1.test(tmp = items[i])
-			? tmp.replace(rgx1, value)
+			? tmp.replace(rgx1, () => value)
 			: rgx2.test(tmp)
 				? (tmp+value)
 				: tmp;
