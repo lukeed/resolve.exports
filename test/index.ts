@@ -280,6 +280,21 @@ describe('$.imports', it => {
 		pass(pkg, './test/innersub/dirtest/inner/file.js', 'foobar/#key/dirtest/inner');
 	});
 
+	// https://github.com/vitejs/vite/issues/23637
+	it('imports["#*"] :: "$" characters in subpath', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#*": "./src/*"
+			}
+		};
+
+		pass(pkg, './src/test$$.js', '#test$$.js');
+		pass(pkg, './src/test$$.js', 'foobar/#test$$.js');
+		pass(pkg, './src/$&file.js', '#$&file.js');
+		pass(pkg, './src/file$1.js', '#file$1.js');
+	});
+
 	/**
 	 * @deprecated Documentation-only deprecation in Node 14.13
 	 * @deprecated Runtime deprecation in Node 16.0
@@ -966,6 +981,21 @@ describe('$.exports', it => {
 
 		pass(pkg, './test/innersub/dirtest/inner/file.js', 'dirtest/inner');
 		pass(pkg, './test/innersub/dirtest/inner/file.js', 'foobar/dirtest/inner');
+	});
+
+	// https://github.com/vitejs/vite/issues/23637
+	it('exports["./*"] :: "$" characters in subpath', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"exports": {
+				"./*": "./src/*"
+			}
+		};
+
+		pass(pkg, './src/test$$.js', './test$$.js');
+		pass(pkg, './src/test$$.js', 'foobar/test$$.js');
+		pass(pkg, './src/$&file.js', './$&file.js');
+		pass(pkg, './src/file$1.js', './file$1.js');
 	});
 
 	it('exports["./dir/*"] :: "*" value', () => {

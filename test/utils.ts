@@ -211,6 +211,13 @@ describe('$.injects', it => {
 		run('bar', ['./*/foo-*.jpg'], ['./bar/foo-bar.jpg']);
 	});
 
+	// https://github.com/vitejs/vite/issues/23637
+	it('should treat "$" characters in `value` literally', () => {
+		run('test$$.js', ['./src/*'], ['./src/test$$.js']);
+		run('$&', ['./src/*'], ['./src/$&']);
+		run('$1', ['./src/*'], ['./src/$1']);
+	});
+
 	// for the "./features/" => "./src/features/" scenario
 	it('should append `value` if missing "*" character', () => {
 		run('app.js', ['./src/features/'], ['./src/features/app.js']);
