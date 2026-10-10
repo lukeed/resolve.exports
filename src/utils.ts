@@ -132,7 +132,11 @@ export function loop(m: Value, keys: Set<t.Condition>, result?: Set<string>): st
 			}
 		} else for (idx in m) {
 			if (keys.has(idx)) {
-				return loop(m[idx], keys, result);
+				const resolution = loop(m[idx], keys, result);
+				
+				if (resolution !== undefined) {
+					return resolution;
+				}
 			}
 		}
 	}
