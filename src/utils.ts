@@ -13,9 +13,16 @@ export function throws(name: string, entry: Entry, condition?: number): never {
 }
 
 export function conditions(options: t.Options): Set<t.Condition> {
-	let out = new Set([ 'default', ...options.conditions || [] ]);
+	let out = new Set(['default']);
 	options.unsafe || out.add(options.require ? 'require' : 'import');
 	options.unsafe || out.add(options.browser ? 'browser' : 'node');
+	for (const condition of options.conditions || []) {
+		if (condition.startsWith('!')) {
+			out.delete(condition.slice(1));
+		} else {
+			out.add(condition);
+		}
+	}
 	return out;
 }
 

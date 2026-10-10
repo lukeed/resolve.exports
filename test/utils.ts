@@ -77,12 +77,12 @@ describe('$.conditions', it => {
 
 	it('option.conditions', () => {
 		let output = run({ conditions: ['foo', 'bar'] });
-		assert.equal(output, ['default', 'foo', 'bar', 'import', 'node']);
+		assert.equal(output, ['default', 'import', 'node', 'foo', 'bar']);
 	});
 
 	it('option.conditions :: order', () => {
 		let output = run({ conditions: ['node', 'import', 'foobar'] });
-		assert.equal(output, ['default', 'node', 'import', 'foobar']);
+		assert.equal(output, ['default', 'import', 'node', 'foobar']);
 	});
 
 	it('option.conditions :: unsafe', () => {
@@ -92,22 +92,47 @@ describe('$.conditions', it => {
 
 	it('option.conditions :: browser', () => {
 		let output = run({ browser: true, conditions: ['foo', 'bar'] });
-		assert.equal(output, ['default', 'foo', 'bar', 'import', 'browser']);
+		assert.equal(output, ['default', 'import', 'browser', 'foo', 'bar']);
 	});
 
 	it('option.conditions :: browser :: order', () => {
 		let output = run({ browser: true, conditions: ['browser', 'foobar'] });
-		assert.equal(output, ['default', 'browser', 'foobar', 'import']);
+		assert.equal(output, ['default', 'import', 'browser', 'foobar']);
 	});
 
 	it('option.conditions :: require', () => {
 		let output = run({ require: true, conditions: ['foo', 'bar'] });
-		assert.equal(output, ['default', 'foo', 'bar', 'require', 'node']);
+		assert.equal(output, ['default', 'require', 'node', 'foo', 'bar']);
 	});
 
 	it('option.conditions :: require :: order', () => {
 		let output = run({ require: true, conditions: ['require', 'foobar'] });
-		assert.equal(output, ['default', 'require', 'foobar', 'node']);
+		assert.equal(output, ['default', 'require', 'node', 'foobar']);
+	});
+
+	it('option.conditions :: negate', () => {
+		let output = run({ conditions: ['!import'] });
+		assert.equal(output, ['default', 'node']);
+	});
+
+	it('option.conditions :: negate :: all', () => {
+		let output = run({ conditions: ['!default', '!import', '!node', 'types'] });
+		assert.equal(output, ['types']);
+	});
+
+	it('option.conditions :: negate :: require', () => {
+		let output = run({ require: true, conditions: ['!node', 'deno'] });
+		assert.equal(output, ['default', 'require', 'deno']);
+	});
+
+	it('option.conditions :: negate :: require', () => {
+		let output = run({ browser: true, conditions: ['!browser'] });
+		assert.equal(output, ['default', 'import']);
+	});
+
+	it('option.conditions :: negate :: unsafe', () => {
+		let output = run({ unsafe: true, conditions: ['!foo', 'bar'] });
+		assert.equal(output, ['default', 'bar']);
 	});
 });
 
