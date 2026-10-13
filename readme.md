@@ -340,6 +340,15 @@ resolve.exports(pkg, '.', {
 //=> ["./$worker.js"]
 ```
 
+If you want to remove a condition, you can use the `!` prefix. For example, you only need `"types"`:
+
+```js
+resolve.exports(pkg, '.', {
+  conditions: ['!default', '!import', '!node', 'types']
+});
+// Conditions: ["types"]
+```
+
 #### options.unsafe
 Type: `boolean` <br>
 Default: `false`
