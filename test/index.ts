@@ -382,6 +382,22 @@ describe('$.imports', it => {
 		pass(pkg, './features/foo/bar.js.js', 'foobar/#features/foo/bar.js');
 	});
 
+	// https://github.com/lukeed/resolve.exports/issues/38
+	it('imports["#features/*.css"] :: escape regex characters', () => {
+		let pkg: Package = {
+			"name": "foobar",
+			"imports": {
+				"#features/*.css": "./features/*.css"
+			}
+		};
+
+		pass(pkg, './features/hello.css', '#features/hello.css');
+		pass(pkg, './features/hello.css', 'foobar/#features/hello.css');
+
+		fail(pkg, '#features/unexists.scss', '#features/unexists.scss');
+		fail(pkg, '#features/unexists.scss', 'foobar/#features/unexists.scss');
+	});
+
 	// https://nodejs.org/api/packages.html#packages_subpath_folder_mappings
 	it('imports["#fooba*"] :: with "#foo*" key', () => {
 		let pkg: Package = {
@@ -1287,6 +1303,10 @@ describe('$.exports', it => {
 
 		pass(pkg, './features/foo/bar.js', 'foobar/features/foo/bar');
 		pass(pkg, './features/foo/bar.js', 'foobar/features/foo/bar.js');
+
+		// https://github.com/lukeed/resolve.exports/issues/40
+		pass(pkg, './features/foo/js.js', 'foobar/features/foo/js');
+		pass(pkg, './features/foo/js.js', 'foobar/features/foo/js.js');
 
 		fail(pkg, './package.json', 'package.json');
 		fail(pkg, './package.json', 'foobar/package.json');
