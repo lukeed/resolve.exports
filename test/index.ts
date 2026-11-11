@@ -1595,3 +1595,65 @@ describe('options.unsafe', it => {
 		});
 	});
 });
+
+
+describe('pattern precedence', it => {
+	let cases: {
+		name: string;
+		pairs: [string, string|null][];
+		input: string;
+		expected: string|null;
+	}[] = [
+		{
+			name: 'longest prefix over a shorter-prefix exclusion',
+			pairs: [['./a/b/*', './dist/hello.js'], ['./a/*/c', null]],
+			input: './a/b/c',
+			expected: './dist/hello.js',
+		},
+		{
+			name: 'longest prefix even when it excludes the input',
+			pairs: [['./a/b/*', null], ['./a/*/c', './dist/hello.js']],
+			input: './a/b/c',
+			expected: null,
+		},
+		{
+			name: 'longest prefix before a wildcard',
+			pairs: [['./x*longsuffix', './a/*.js'], ['./x/y*', './b/*.js']],
+			input: './x/yzzlongsuffix',
+			expected: './b/zzlongsuffix.js',
+		},
+		{
+			name: 'longest prefix for equal-length keys',
+			pairs: [['./xy*zz', './b/*.js'], ['./x*zzz', './a/*.js']],
+			input: './xyzzzz',
+			expected: './b/zz.js',
+		},
+		{
+			name: 'longer trailer for equal prefixes',
+			pairs: [['./x/*', './a/*.js'], ['./x/*.js', './b/*.js']],
+			input: './x/test.js',
+			expected: './b/test.js',
+		},
+	];
+
+	for (let field of ['exports', 'imports'] as const) {
+		for (let reversed of [false, true]) {
+			for (let sample of cases) {
+				it(`${field} prefers the ${sample.name} (${reversed ? 'reversed' : 'ordered'})`, () => {
+					let pairs = sample.pairs.slice();
+					if (reversed) pairs.reverse();
+					if (field === 'imports') {
+						pairs = pairs.map(([key, value]): [string, string|null] => [key.replace('./', '#'), value]);
+					}
+					let pkg: Package = { name: 'foobar', [field]: Object.fromEntries(pairs) };
+					let input = field === 'imports' ? sample.input.replace('./', '#') : sample.input;
+					if (sample.expected === null) {
+						fail(pkg, input as Entry, input);
+					} else {
+						pass(pkg, sample.expected, input);
+					}
+				});
+			}
+		}
+	}
+});

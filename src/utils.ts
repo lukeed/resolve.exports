@@ -34,14 +34,16 @@ export function walk(name: string, mapping: Mapping, input: string, options?: t.
 		let key: Entry;
 
 		for (key in mapping) {
-			if (longest && key.length < longest.length) {
+			tmp = key.indexOf('*', 1);
+			let longestPrefix = longest ? longest.indexOf('*', 1) : -1;
+			let differentPrefixes = tmp !== -1 && longestPrefix !== -1 && tmp !== longestPrefix;
+
+			if (longest && (differentPrefixes ? tmp < longestPrefix : key.length < longest.length)) {
 				// do not allow "./" to match if already matched "./foo*" key
 			} else if (key[key.length - 1] === '/' && entry.startsWith(key)) {
 				replace = entry.substring(key.length);
 				longest = key;
 			} else if (key.length > 1) {
-				tmp = key.indexOf('*', 1);
-
 				if (!!~tmp) {
 					match = RegExp(
 						'^' + key.substring(0, tmp) + '(.*)' + key.substring(1+tmp) + '$'
